@@ -49,8 +49,8 @@ def current_cost(model, node, node2, ts):
     """
     return model.cost[storage_nodes, ts]
 
-def objective_function(model, ts):
-    return summation(model.c, model.X)
+def objective_function(model):
+    return summation(model.cost, model.X)
 
 def mass_balance(model, nonstorage_nodes, ts):
     """
@@ -92,12 +92,12 @@ def run():
     # Declaring decision variable X
     model.X = Var(model.links, model.time_step, domain=NonNegativeReals, bounds=current_flow_capacity_constraint)
     
-    model.c = Var(model.links, model.time_step)
+    #model.c = Var(model.cost, model.time_step)
 
     # Declaring state variable S
     model.S = Var(model.storage_nodes, model.time_step, domain=NonNegativeReals, bounds=current_storage_capacity_constraint)
         
-    model.Z = Objective(model.time_step, rule=objective_function, sense=minimize)
+    model.Z = Objective(rule=objective_function, sense=minimize)
 
     model.mass_balance_const = Constraint(model.nonstorage_nodes, model.time_step, rule=mass_balance)
 
