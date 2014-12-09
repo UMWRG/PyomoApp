@@ -19,8 +19,6 @@ set  nonstorage_nodes:=
 set storage_nodes:=
   SR1;
 
-set time_step:= 1 2 3 4 5 6;
-
 param  inflow:
                    1    2     3      4      5     6:=
   SR1              300  320   50     40     310   320
