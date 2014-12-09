@@ -5,6 +5,7 @@
 # Importing needed Packages
 import coopr.environ
 from coopr.pyomo import *
+from coopr.opt import SolverFactory
 
 # Declaring the model
 model = AbstractModel()
@@ -57,5 +58,9 @@ def flow_mass_balance(model, nonstorage_nodes):
     
 model.flow_mass_balance_constraint = Constraint(model.nonstorage_nodes, rule=flow_mass_balance)
 
-instance=model.create("Demo1.dat")
-instance.pprint()
+if __name__ == '__main__':
+    opt = SolverFactory("glpk")
+    instance=model.create("Demo1.dat")
+    res = opt.solve(instance)
+    print res
+#    instance.pprint()

@@ -44,15 +44,10 @@ def current_storage_capacity_constraint(model, storage_nodes, ts):
     return (model.storage_lower_bound[storage_nodes, ts],
             model.storage_upper_bound[storage_nodes, ts])
 
-def current_cost(model, node, node2, ts):
-    """
-    """
-    return model.cost[storage_nodes, ts]
-
 def objective_function(model):
     return summation(model.cost, model.X)
 
-def mass_balance(model, nonstorage_nodes, ts):
+def non_storage_mass_balance(model, nonstorage_nodes, ts):
     """
         Mass balance for non-storage nodes:
     """
@@ -66,6 +61,8 @@ def mass_balance(model, nonstorage_nodes, ts):
     term4 = sum([model.X[nonstorage_nodes, node_out, ts] for node_out in model.nodes if (nonstorage_nodes, node_out) in model.links])
 
     # inflow - outflow = 0:
+    print (term1 + term2) - (term3 + term4) == 0
+
     return (term1 + term2) - (term3 + term4) == 0
 
 def storage_mass_balance(model, storage_nodes, ts):
@@ -88,26 +85,25 @@ def storage_mass_balance(model, storage_nodes, ts):
 
 ##======================== running the model in a loop for each time step
 def run():
-    opt = SolverFactory("glpk")
     # Declaring decision variable X
     model.X = Var(model.links, model.time_step, domain=NonNegativeReals, bounds=current_flow_capacity_constraint)
     
-    #model.c = Var(model.cost, model.time_step)
-
     # Declaring state variable S
     model.S = Var(model.storage_nodes, model.time_step, domain=NonNegativeReals, bounds=current_storage_capacity_constraint)
         
     model.Z = Objective(rule=objective_function, sense=minimize)
 
-    model.mass_balance_const = Constraint(model.nonstorage_nodes, model.time_step, rule=mass_balance)
+    model.non_storage_mass_balance_const = Constraint(model.nonstorage_nodes, model.time_step, rule=non_storage_mass_balance)
 
     model.storage_mass_balance_const = Constraint(model.storage_nodes, model.time_step, rule=storage_mass_balance)
 
     print ('========================================================')
+    opt = SolverFactory("glpk")
     instance = model.create("Demo2.dat")
     res = opt.solve(instance)
-    instance.pprint()
-    #instance.load(res)
+#    instance.load(res)
+    #instance.pprint()
+    print res
     #res.write()
     #block.add_new_init_S = instance.S
     #block.del_S()
