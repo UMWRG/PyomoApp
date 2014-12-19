@@ -1,5 +1,5 @@
+set nodes:= SR1 J1 Ag1 Urb1 Endpt;
 
-set  nodes :=  SR1  J1  Ag1  Urb1  Endpt;
 
 set  links:=
   SR1 J1
@@ -19,13 +19,8 @@ set  nonstorage_nodes:=
 set storage_nodes:=
   SR1;
 
-param  inflow:
-                   1    2     3      4      5     6:=
-  SR1              300  320   50     40     310   320
-  J1               0    0     0      0      0     0
-  Ag1              0    0     0      0      0     0
-  Urb1             0    0     0      0      0     0
-  Endpt            0    0     0      0      0     0;
+set time_step:= 1 2 3 4 5 6;
+
 
 param  consumption_coefficient:
                    1      2      3      4      5      6:=
@@ -57,9 +52,8 @@ param flow_upper_bound:
   [J1,Endpt]       200  200   200    200    200   200;
 
   
-param      initial_storage:
-            1       2      3       4      5      6:=
-  SR1       450     0      0       0      0      0;
+param      initial_storage:=
+  SR1       450;
 
 param      storage_lower_bound:
              1       2      3       4      5      6:=
@@ -75,3 +69,11 @@ param cost:
   [SR1,J1]         15   15    15     15     15    15
   [J1,Urb1]        1    10    7      2      3     5
   [J1,Endpt]       10   10    10    10      10    10;
+
+param  inflow:
+                   1    2     3      4      5     6:=
+  SR1              300  320   50     40     310   320
+  J1               0    0     0      0      0     0
+  Ag1              0    0     0      0      0     0
+  Urb1             0    0     0      0      0     0
+  Endpt            0    0     0      0      0     0;
