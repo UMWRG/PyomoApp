@@ -23,6 +23,10 @@ Option                 Short  Parameter  Description
                                          belong to this template are ignored.
 --output              -o    OUTPUT       Filename of the output file.
 
+-- model              -m    Pyomo model  Pyomo model file (*.py), it needs to implement method called
+                            file         run_model which take datafile as arguments and return
+                                         2 lists contain results and model instances. Example is
+                                         distributed with the plugin
 
 Specifying the time axis
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,7 +61,7 @@ Option                 Short  Parameter  Description
 
 Example:
 
--s 4 -t 4  -tx  2000-01-01, 2000-02-01, 2000-03-01, 2000-04-01, 2000-05-01, 2000-06-01 -o "input.dat"
+-s 4 -t 4  -o "c:\\temp\\input.dat"  -m c:\\temp\\PyomoModel_2.py"
 
 '''
 
@@ -67,40 +71,76 @@ import sys
 from HydraLib.HydraException import HydraPluginError
 
 
-pyomolibpath = 'lib'
+pythondir = os.path.dirname(os.path.realpath(__file__))
+pyomolibpath=os.path.join(pythondir, '..', 'lib')
 lib_path = os.path.realpath(os.path.abspath(pyomolibpath))
 if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
 from PyomoAppLib import commandline_parser
 from PyomoAppLib import cocnvert_to_int
+from PyomoAppLib import read_inputData
 from PyomoExporter import Exporter
+from PyomoImporter import Importer
 from PyomoWrapper import runmodel
+from HydraLib import PluginLib
 
 
-def export_data():
-    template_id = None
-    if args.template_id is not None:
-            template_id = int(args.template_id)
-    exporter=Exporter(args.output)
-    if args.start_date is not None and args.end_date is not None \
-                and args.time_step is not None:
-        exporter.write_time_index(start_time=args.start_date,
-                                      end_time=args.end_date,
-                                      time_step=args.time_step)
-    elif args.time_axis is not None:
-        exporter.write_time_index(time_axis=args.time_axis)
-    else:
-        raise HydraPluginError('Time axis not specified.')
+def import_result(args, vars, objs, actual_time_steps):
+    imp=Importer(vars, objs, actual_time_steps)
+    imp.load_network(args.network, args.scenario)
+    #imp.set_network(network)
+    imp.import_res()
+    imp.save()
 
-    exporter.expoty_network(netword_id,  scenario_id, template_id)
-    exporter.save_file()
+def check_args(args):
+    try:
+        int(args.network)
+    except (TypeError, ValueError):
+        raise HydraPluginError('No network is specified')
+    try:
+        int(args.scenario)
+    except (TypeError, ValueError):
+        raise HydraPluginError('No senario is specified')
 
+    if args.model_file is None:
+        raise HydraPluginError('model file is not specifed')
+    elif os.path.isfile(args.model_file)==False:
+        raise HydraPluginError('model file: '+args.model_file+', is not existed')
+    elif args.output==None:
+        raise HydraPluginError('No output file specified')
+    elif os.path.exists(os.path.dirname(args.output))==False:
+            raise HydraPluginError('output file directory: '+ os.path.dirname(args.output)+', is not exist')
+    elif os.path.isfile(args.output)==False:
+        raise HydraPluginError('output file: '+args.output+', is not existed')
 
 if __name__ == '__main__':
-    parser = commandline_parser()
-    args = parser.parse_args()
-    netword_id=cocnvert_to_int(args.network, "Network Id")
-    scenario_id=cocnvert_to_int(args.scenario, "scenario Id")
-    export_data()
-    runmodel(args.output)
+    try:
+        parser = commandline_parser()
+        args = parser.parse_args()
+        check_args(args)
+        netword_id=cocnvert_to_int(args.network, "Network Id")
+        scenario_id=cocnvert_to_int(args.scenario, "scenario Id")
+        vars, objs=runmodel(args.output, args.model_file)
+        actual_time_steps=read_inputData(args.output)
+        import_result(args, vars, objs, actual_time_steps)
+        message="Run successfully"
+        print PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], message=message)
+    except HydraPluginError, e:
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        err = PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], errors = [e.message])
+        print err
+    except Exception as e:
+        errors = []
+        if e.message == '':
+            if hasattr(e, 'strerror'):
+                errors = [e.strerror]
+        else:
+            errors = [e.message]
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        err = PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], errors = [e.message])
+        print err
+
+

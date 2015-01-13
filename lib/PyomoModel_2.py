@@ -1,5 +1,8 @@
-# Importing needed Packages
+'''
+This is Pyomo version for demo model2
+'''
 
+# Importing needed Packages
 
 from coopr.pyomo import *
 import coopr.environ
@@ -38,8 +41,7 @@ class PyMode():
         self.model=model
 
 
-    def run(self, input_file):
-        print "Test the result"
+    def run(self, input_file):        
         opt = SolverFactory("glpk")
         list=[]
         list_=[]
@@ -53,7 +55,6 @@ class PyMode():
                     list_.append(vv)
         instance =self.model.create(input_file)
         storage={}
-
 
         for vv in list_:
             ##################
@@ -70,15 +71,14 @@ class PyMode():
             else:
                 instance.preprocess()
             res=opt.solve(instance)
-            instance.load(res)
+            instance.load(res) 
+            instance.preprocess()
             storage=get_storage(instance)
             instances.append(instance)
-            print res
-        return  instances
+            list.append(res)
+        return  list, instances
 
-            #print "Result: ", res
-
-
+#print "Result: ", res
 # Defining the flow lower and upper bound
 def flow_capacity_constraint(model, node, node2):
     return (model.min_flow[node, node2, model.current_time_step], model.max_flow[node, node2, model.current_time_step])
@@ -96,8 +96,6 @@ def get_current_cost(model):
 
 def objective_function(model):
     return summation(get_current_cost(model), model.X)
-
-
 
 ##======================================== Declaring constraints
 # Mass balance for non-storage nodes:
@@ -154,8 +152,11 @@ def set_initial_storage(instance, storage):
                 s_var = getattr(instance, var)
                 for vv in s_var:
                     s_var[vv]=storage[vv]
-
-if __name__ == '__main__':
+def run_model(datafile):
     pymodel=PyMode()
-    instances=pymodel.run("input.dat")
-
+    return pymodel.run(datafile)
+	
+if __name__ == '__main__':     
+    pymodel=PyMode()    
+    pymodel.run("input.dat")
+    

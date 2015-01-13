@@ -1,6 +1,9 @@
 #from ecdsa import keys
 
-__author__ = 'Khaled Mohamed'
+__author__ = 'K Mohamed'
+
+#example
+#
 
 import sys
 
@@ -53,6 +56,7 @@ class Exporter (object):
         log.info("Network retrieved")
         attrs = self.connection.call('get_attributes', {})
         log.info("%s attributes retrieved", len(attrs))
+        self.net=net
         self.network= HydraNetwork()
         self.template_id =template_id
         self.network.load(net , attrs)
@@ -66,6 +70,11 @@ class Exporter (object):
         if(len(self.time_index)>0):
             self.output_file_contenets.append('\nset time_step:=')
             for timestep in self.time_index.keys():
+                self.output_file_contenets.append(" " +str(timestep))
+            self.output_file_contenets.append(';\n')
+
+            self.output_file_contenets.append('\nset actual_time_step:=')
+            for timestep in self.time_index.values():
                 self.output_file_contenets.append(" " +str(timestep))
             self.output_file_contenets.append(';\n')
         self.export_data()

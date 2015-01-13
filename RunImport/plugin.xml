@@ -1,0 +1,49 @@
+<plugin_info>
+    <plugin_name>Pyomo Run and Import Plugin</plugin_name>
+    <plugin_dir>PyomoRunImport.exe</plugin_dir>
+    <plugin_description>
+        Import a gdx results file into Hydra.
+	</plugin_description>
+	<smallicon>pyomo_icon16.png</smallicon>
+    <largeicon>pyomo_icon32.png</largeicon>
+    <plugin_epilog>For more information visit hydra platform website</plugin_epilog>
+	<mandatory_args>
+        <arg>
+            <name>network</name>
+            <switch>-t</switch>
+            <multiple>N</multiple>
+            <allownew>N</allownew>
+            <argtype>string</argtype>
+            <help>ID of the network where results will be imported to. This coincides with the network exported to pyomo..</help>
+        </arg>
+        <arg>
+            <name>scenario</name>
+            <switch>-s</switch>
+            <multiple>N</multiple>
+            <allownew>N</allownew>
+            <argtype>string</argtype>
+            <help> ID of the underlying scenario used for the most recent simulation run.</help>
+        </arg>
+         <arg>
+            <name>data-file</name>
+            <switch>-o</switch>
+            <multiple>N</multiple>
+            <allownew>N</allownew>
+            <argtype>file</argtype>
+            <help>Full path to the data file used to set data the simulation.</help>
+        </arg>
+        <arg>
+            <name>pyomo-model</name>
+            <switch>-m</switch>
+            <multiple>N</multiple>
+            <allownew>N</allownew>
+            <argtype>file</argtype>
+            <help>Full path to the pyomo model (*.py) used for the simulation.</help>
+        </arg>
+    </mandatory_args>
+   <non_mandatory_args>
+
+    </non_mandatory_args>
+    <switches>
+    </switches>
+ </plugin_info>

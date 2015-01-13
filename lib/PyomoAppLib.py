@@ -6,12 +6,76 @@ from HydraLib import PluginLib
 import sys
 
 
-def commandline_parser():
+def commandline_parser_auto():
     parser = ap.ArgumentParser(
         description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
 
 Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
-(c) Copyright 2014, Univeristy of Manchester.
+(c) Copyright 2015, Univeristy of Manchester.
+        """, epilog="For more information visit www.hydraplatform.org",
+        formatter_class=ap.RawDescriptionHelpFormatter)
+    # Mandatory arguments
+    #parser.add_argument('-p', '--project',
+    #                    help='''ID of the project that will be exported.''')
+    parser.add_argument('-t', '--network',
+                        help='''ID of the network that will be exported.''')
+    parser.add_argument('-s', '--scenario',
+                        help='''ID of the scenario that will be exported.''')
+
+    parser.add_argument('-tp', '--template-id',
+                        help='''ID of the template to be used.''')
+
+    parser.add_argument('-m', '--model-file',
+                        help='''Full path to the pyomo model (*.py) used for
+                        the simulation.''')
+    parser.add_argument('-o', '--output',
+                        help='''Filename of the output file.''')
+
+    parser.add_argument('-tx', '--time-axis', nargs='+',
+                        help='''Time axis for the modelling period (a list of
+                        comma separated time stamps).''')
+
+    parser.add_argument('-st', '--start-date',
+                        help='''Start date of the time period used for
+                        simulation.''')
+    parser.add_argument('-en', '--end-date',
+                        help='''End date of the time period used for
+                        simulation.''')
+    parser.add_argument('-dt', '--time-step',
+                        help='''Time step used for simulation.''')
+    return parser
+
+def commandline_parser_run_import():
+    parser = ap.ArgumentParser(
+        description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
+
+Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
+(c) Copyright 2015, Univeristy of Manchester.
+        """, epilog="For more information visit www.hydraplatform.org",
+        formatter_class=ap.RawDescriptionHelpFormatter)
+    # Mandatory arguments
+    #parser.add_argument('-p', '--project',
+    #                    help='''ID of the project that will be exported.''')
+    parser.add_argument('-t', '--network',
+                        help='''ID of the network that will be exported.''')
+    parser.add_argument('-s', '--scenario',
+                        help='''ID of the scenario that will be exported.''')
+
+    parser.add_argument('-o', '--output',
+                        help='''Filename of the output file.''')
+
+    parser.add_argument('-m', '--model-file',
+                        help='''Full path to the pyomo model (*.py) used for
+                        the simulation.''')
+
+    return parser
+
+def commandline_parser_export():
+    parser = ap.ArgumentParser(
+        description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
+
+Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
+(c) Copyright 2015, Univeristy of Manchester.
         """, epilog="For more information visit www.hydraplatform.org",
         formatter_class=ap.RawDescriptionHelpFormatter)
     # Mandatory arguments
@@ -27,6 +91,46 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
 
     parser.add_argument('-o', '--output',
                         help='''Filename of the output file.''')
+
+    parser.add_argument('-tx', '--time-axis', nargs='+',
+                        help='''Time axis for the modelling period (a list of
+                        comma separated time stamps).''')
+
+    parser.add_argument('-st', '--start-date',
+                        help='''Start date of the time period used for
+                        simulation.''')
+    parser.add_argument('-en', '--end-date',
+                        help='''End date of the time period used for
+                        simulation.''')
+    parser.add_argument('-dt', '--time-step',
+                        help='''Time step used for simulation.''')
+    return parser
+
+def commandline_parser():
+    parser = ap.ArgumentParser(
+        description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
+
+Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
+(c) Copyright 2015, Univeristy of Manchester.
+        """, epilog="For more information visit www.hydraplatform.org",
+        formatter_class=ap.RawDescriptionHelpFormatter)
+    # Mandatory arguments
+    #parser.add_argument('-p', '--project',
+    #                    help='''ID of the project that will be exported.''')
+    parser.add_argument('-t', '--network',
+                        help='''ID of the network that will be exported.''')
+    parser.add_argument('-s', '--scenario',
+                        help='''ID of the scenario that will be exported.''')
+
+    parser.add_argument('-tp', '--template-id',
+                        help='''ID of the template to be used.''')
+
+    parser.add_argument('-o', '--output',
+                        help='''Filename of the output file.''')
+
+    parser.add_argument('-m', '--model-file',
+                        help='''Full path to the pyomo model (*.py) used for
+                        the simulation.''')
 
     parser.add_argument('-tx', '--time-axis', nargs='+',
                         help='''Time axis for the modelling period (a list of
@@ -69,6 +173,30 @@ def translate_attr_name(name):
         translator = UnicodeTranslate()
     name = name.translate(translator)
     return name
+
+def read_inputData(datafile):
+     data = open(datafile, "r")
+     actual_time_steps=[]
+     for line in data:
+         if(line.startswith('set actual_time_step:=')):
+             line_=line.replace('set actual_time_step:=','')
+             line_=line_.replace(';','')
+             line_=line_.strip()
+             time_steps=line_.split(" ")
+             counter=1
+             ste=''
+             for step in time_steps:
+                 if(counter==1):
+                     ste=step
+                     counter+=1
+                 else:
+                     ste=ste+" "+step
+                     actual_time_steps.append(ste)
+                     counter=1
+     data.close()
+     return actual_time_steps
+
+
 
 class UnicodeTranslate(dict):
     """
@@ -144,3 +272,17 @@ def export_arrays(self, resources):
                             attr_outputs.append('\n')
                         attr_outputs.append('\n\n')
         return attr_outputs
+
+class ModelVarable:
+    def __init__(self, name, owner, desc, data_set=None, data_type=None):
+        self.name=name
+        self.dec=desc
+        self.owner=owner
+        if(data_set!=None):
+            self.data_set=data_set
+        else:
+            self.data_set=[]
+        self.data_type=data_type
+
+    def add_data(self, data):
+        self.data_set.append(data)
