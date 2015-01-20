@@ -1,6 +1,6 @@
 # -*- mode: python -*-
 a = Analysis(['PyomoAutoRun.py'],
-             pathex=['..\\lib'],
+             pathex=['..\\lib\\'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None,

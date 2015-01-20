@@ -1,6 +1,5 @@
-# -*- mode: python -*-
 a = Analysis(['PyomoExport.py'],
-             pathex=['..\\lib'],
+             pathex=['..\\lib\\'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None,

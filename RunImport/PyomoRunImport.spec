@@ -1,9 +1,8 @@
-# -*- mode: python -*-
 a = Analysis(['PyomoRunImport.py'],
-             pathex=['..\\lib'],
-             hiddenimports=['pyutilib.workflow', 'pyutilib.component.core'],
+             pathex=['..\\lib\\', 'C:\\python27\\lib\site-packages\pyutillib' ],
+             hiddenimports=['pyutilib.component.core'],
              hookspath=None,
-             runtime_hooks=None,
+             runtime_hooks=None,            
              excludes=['_tkinter', 'IPython', 'win32ui', 'cPickle', 'win32com', 'sqlalchemy', 'sqlite3', 'pyexpat'])
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
