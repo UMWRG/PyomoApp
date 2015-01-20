@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 a = Analysis(['PyomoAutoRun.py'],
              pathex=['..\\lib\\'],
-             hiddenimports=[],
+             hiddenimports=['pyutilib.component.core'],
              hookspath=None,
              runtime_hooks=None,
              excludes=['_tkinter', 'IPython', 'win32ui', 'cPickle', 'win32com', 'sqlalchemy', 'sqlite3', 'pyexpat'])
