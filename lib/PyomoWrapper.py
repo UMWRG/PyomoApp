@@ -6,6 +6,7 @@ from PyomoAppLib import ModelVarable
 import os
 import sys
 import importlib
+import pyutilib.component.core
 
 def get_values(instance, var_, list_):
     owner=[]
