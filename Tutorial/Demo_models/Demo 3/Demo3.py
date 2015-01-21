@@ -28,6 +28,8 @@ model.storage_lower_bound = Param(model.storage_nodes, model.time_step)
 model.storage_upper_bound = Param(model.storage_nodes, model.time_step)
 model.demand = Param(model.demand_nodes, model.time_step, default=0)
 
+
+
 ##======================================== Declaring Variables (X and S)
 
 # Defining the flow lower and upper bound
@@ -50,7 +52,7 @@ model.alpha = Var(model.demand_nodes, domain=NonNegativeReals)
 
 # Declaring variable alpha
 def alpha_bound(model):
-    return 0, model.alpha, 1
+    return 0, 1#, model.alpha, 1
 demand_satisfaction_ratio_bound = Constraint(rule=alpha_bound)
 
 """
@@ -82,8 +84,8 @@ def mass_balance(model, nonstorage_nodes):
     term2 = sum([model.X[node_in, nonstorage_nodes]*model.flow_multiplier[node_in, nonstorage_nodes, model.current_time_step]
                   for node_in in model.nodes if (node_in, nonstorage_nodes) in model.links])
     # outflow
-    if model.nonstorage_nodes in model.demand_nodes:
-        term3 = model.alpha[demand_nodes, model.current_time_step] * model.demand[demand_nodes, model.current_time_step]
+    if nonstorage_nodes in model.demand_nodes:
+        term3 = model.alpha[nonstorage_nodes] * model.demand[nonstorage_nodes, model.current_time_step]
     else:
         term3 = 0
     term4 = sum([model.X[nonstorage_nodes, node_out]
@@ -132,7 +134,7 @@ def set_initial_storage(instance, storage):
 
 ##======================== running the model in a loop for each time step
 if __name__ == '__main__':
-    print "Test the result"
+    print "==== Running the model ===="
     opt = SolverFactory("glpk")
     list=[]
     list_=[]
@@ -145,7 +147,6 @@ if __name__ == '__main__':
             parmobject = getattr(instance, comp)
             for vv in parmobject.value:
                 list_.append(vv)
-    #instance =model.create("Demo2.dat")
     storage = {}
     for vv in list_:
         ##################
@@ -153,6 +154,7 @@ if __name__ == '__main__':
         model.preprocess()
         model.current_time_step.add(vv)
         model.preprocess()
+        print "Running for time step: ", vv
         instance=model.create("Demo3.dat")
         ##update intial storage value from previous storage
         if len(storage) > 0:
@@ -166,6 +168,8 @@ if __name__ == '__main__':
         list.append(res)
     #print "This is the list:", list
         ####################
-
+    count=1
     for res in list:
+        print " ========= Time step:  %s =========="%count
         print res
+        count+=1
