@@ -147,7 +147,9 @@ class Exporter (object):
 
         if len(attributes) > 0:
             for attribute in attributes:
-                self.output_file_contenets.append("\nparam "+attribute.name+':=')
+                nname="\nparam "+attribute.name+':='
+                contents=[]
+                #self.output_file_contenets.append("\nparam "+attribute.name+':=')
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
                     if attr is None or attr.value is None:
@@ -157,8 +159,14 @@ class Exporter (object):
                     if islink:
                         name=get_link_name(resource)
 
-                    self.output_file_contenets.append("\n "+name+"  "+str(attr.value.values()[0][0]))
-                self.output_file_contenets.append(';')
+                    #self.output_file_contenets.append("\n "+name+"  "+str(attr.value.values()[0][0]))
+                    contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
+                if len(contents)>0:
+                    self.output_file_contenets.append(nname)
+                    for st in contents:
+                        self.output_file_contenets.append(st)
+
+                    self.output_file_contenets.append(';\n')
 
 
     def export_timeseries(self, resources, obj_type, res_type=None):
@@ -186,7 +194,9 @@ class Exporter (object):
                     name=resource.name
                     if(islink):
                         name=get_link_name(resource)
-                    self.output_file_contenets.append("\n  "+name)
+                    #self.output_file_contenets.append("\n  "+name)
+                    nname="\n  "+name;
+                    contents=[]
                     for t, timestamp in enumerate(self.time_index.values()):
                         attr = resource.get_attribute(attr_name=attribute.name)
                         if attr is not None and attr.dataset_id is not None:
@@ -202,8 +212,13 @@ class Exporter (object):
                             if data is None:
                                 continue
                             data_str = ' %14f' % data
-                            self.output_file_contenets.append("   "+data_str)
-                self.output_file_contenets.append(';')
+                            #self.output_file_contenets.append("   "+data_str)
+                            contents.append("   "+data_str)
+                    if len(contents)>0:
+                        self.output_file_contenets.append(nname)
+                        for st in contents:
+                            self.output_file_contenets.append(st)
+                self.output_file_contenets.append(';\n')
 
     def write_time(self):
         time_string=""
