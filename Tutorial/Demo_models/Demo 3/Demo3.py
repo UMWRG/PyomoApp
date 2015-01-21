@@ -37,22 +37,24 @@ def flow_capacity_constraint(model, node, node2):
     return (model.flow_lower_bound[node, node2, model.current_time_step], model.flow_upper_bound[node, node2, model.current_time_step])
 
 # Defining the storage lower and upper bound
-def storage_capacity_constraint(model, storage_nodes):
+def  storage_capacity_constraint(model, storage_nodes):
     return (model.storage_lower_bound[storage_nodes, model.current_time_step], model.storage_upper_bound[storage_nodes, model.current_time_step])
 
 
 
 # Declaring decision variable X
+# Declaring decision variable X
 model.X = Var(model.links, domain=NonNegativeReals, bounds=flow_capacity_constraint)
 
 # Declaring state variable S
-model.S = Var(model.storage_nodes, domain=NonNegativeReals, bounds=storage_capacity_constraint)
+model.S = Var(model.storage_nodes, bounds=storage_capacity_constraint)
 
-model.alpha = Var(model.demand_nodes, domain=NonNegativeReals)
-
-# Declaring variable alpha
 def alpha_bound(model):
     return 0, 1#, model.alpha, 1
+
+model.alpha = Var(model.demand_nodes, bounds=alpha_bound)
+
+# Declaring variable alpha
 demand_satisfaction_ratio_bound = Constraint(rule=alpha_bound)
 
 """
@@ -88,6 +90,7 @@ def mass_balance(model, nonstorage_nodes):
         term3 = model.alpha[nonstorage_nodes] * model.demand[nonstorage_nodes, model.current_time_step]
     else:
         term3 = 0
+
     term4 = sum([model.X[nonstorage_nodes, node_out]
                   for node_out in model.nodes if (nonstorage_nodes, node_out) in model.links])
 
@@ -132,14 +135,13 @@ def set_initial_storage(instance, storage):
                 for vv in s_var:
                     s_var[vv] = storage[vv]
 
-##======================== running the model in a loop for each time step
-if __name__ == '__main__':
+def run_model(datafile):
     print "==== Running the model ===="
     opt = SolverFactory("glpk")
     list=[]
     list_=[]
     model.current_time_step.add(1)
-    instance=model.create("Demo3.dat")
+    instance=model.create(datafile)
     #"""
     ## determine the time steps
     for comp in instance.active_components():
@@ -148,6 +150,7 @@ if __name__ == '__main__':
             for vv in parmobject.value:
                 list_.append(vv)
     storage = {}
+    insts=[]
     for vv in list_:
         ##################
         model.current_time_step.clear()
@@ -155,7 +158,7 @@ if __name__ == '__main__':
         model.current_time_step.add(vv)
         model.preprocess()
         print "Running for time step: ", vv
-        instance=model.create("Demo3.dat")
+        instance=model.create(datafile)
         ##update intial storage value from previous storage
         if len(storage) > 0:
             set_initial_storage(instance, storage)
@@ -164,6 +167,7 @@ if __name__ == '__main__':
     #"""
         res=opt.solve(instance)
         instance.load(res)
+        insts.append(instance)
         storage=get_storage(instance)
         list.append(res)
     #print "This is the list:", list
@@ -173,3 +177,25 @@ if __name__ == '__main__':
         print " ========= Time step:  %s =========="%count
         print res
         count+=1
+    count=1
+    for inst in insts:
+        print " ========= Time step:  %s =========="%count
+        display_variables(inst)
+        count+=1
+
+def display_variables (instance):
+    for var in instance.active_components(Var):
+            s_var = getattr(instance, var)
+            print "=================="
+            print "Variable: %s"%s_var
+            print "=================="
+            for vv in s_var:
+                if len(vv) ==2:
+                    name="[" + ', '.join(map(str,vv)) + "]"
+                else:
+                    name= ''.join(map(str,vv))
+                print name,": ",(s_var[vv].value)
+
+##======================== running the model in a loop for each time step
+if __name__ == '__main__':
+    run_model("demo3.dat")
