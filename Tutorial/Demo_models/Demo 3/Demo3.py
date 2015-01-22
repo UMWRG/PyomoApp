@@ -12,7 +12,7 @@ model = AbstractModel()
 model.nodes = Set()
 model.links = Set(within=model.nodes*model.nodes)
 model.demand_nodes = Set()
-model.nonstorage_nodes = Set()
+model.non_storage_nodes = Set()
 model.storage_nodes = Set()
 model.time_step = Set()
 
@@ -22,25 +22,21 @@ model.current_time_step = Set()
 model.initial_storage = Param(model.storage_nodes, mutable=True)
 model.cost = Param(model.demand_nodes, model.time_step, default=0)
 model.flow_multiplier = Param(model.links, model.time_step)
-model.flow_lower_bound = Param(model.links, model.time_step)
-model.flow_upper_bound = Param(model.links, model.time_step)
-model.storage_lower_bound = Param(model.storage_nodes, model.time_step)
-model.storage_upper_bound = Param(model.storage_nodes, model.time_step)
+model.min_flow = Param(model.links, model.time_step)
+model.max_flow = Param(model.links, model.time_step)
+model.min_storage = Param(model.storage_nodes, model.time_step)
+model.max_storage = Param(model.storage_nodes, model.time_step)
 model.demand = Param(model.demand_nodes, model.time_step, default=0)
-
-
 
 ##======================================== Declaring Variables (X and S)
 
 # Defining the flow lower and upper bound
 def flow_capacity_constraint(model, node, node2):
-    return (model.flow_lower_bound[node, node2, model.current_time_step], model.flow_upper_bound[node, node2, model.current_time_step])
+    return (model.min_flow[node, node2, model.current_time_step], model.max_flow[node, node2, model.current_time_step])
 
 # Defining the storage lower and upper bound
 def  storage_capacity_constraint(model, storage_nodes):
-    return (model.storage_lower_bound[storage_nodes, model.current_time_step], model.storage_upper_bound[storage_nodes, model.current_time_step])
-
-
+    return (model.min_storage[storage_nodes, model.current_time_step], model.max_storage[storage_nodes, model.current_time_step])
 
 # Declaring decision variable X
 # Declaring decision variable X
@@ -97,7 +93,7 @@ def mass_balance(model, nonstorage_nodes):
     # inflow - outflow = 0:
     return (term1 + term2) - (term3 + term4) == 0
 
-model.mass_balance_const = Constraint(model.nonstorage_nodes, rule=mass_balance)
+model.mass_balance_const = Constraint(model.non_storage_nodes, rule=mass_balance)
 
 # Mass balance for storage nodes:
 def storage_mass_balance(model, storage_nodes):
@@ -178,24 +174,13 @@ def run_model(datafile):
         print res
         count+=1
     count=1
-    for inst in insts:
-        print " ========= Time step:  %s =========="%count
-        display_variables(inst)
-        count+=1
 
-def display_variables (instance):
-    for var in instance.active_components(Var):
-            s_var = getattr(instance, var)
-            print "=================="
-            print "Variable: %s"%s_var
-            print "=================="
-            for vv in s_var:
-                if len(vv) ==2:
-                    name="[" + ', '.join(map(str,vv)) + "]"
-                else:
-                    name= ''.join(map(str,vv))
-                print name,": ",(s_var[vv].value)
+    return list, insts
 
-##======================== running the model in a loop for each time step
+
+
+##========================
+# running the model in a loop for each time step
 if __name__ == '__main__':
-    run_model("demo3.dat")
+    run_model("c:\\temp\\model\\input_M3.dat")
+    #run_model("demo3.dat")

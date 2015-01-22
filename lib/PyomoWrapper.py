@@ -2,6 +2,7 @@ __author__ = 'K. Mohamed'
 
 #from PyomoModel_2 import PyMode as model
 from coopr.pyomo import *
+import coopr.environ
 from PyomoAppLib import ModelVarable
 import os
 import sys
@@ -37,9 +38,13 @@ def get_values(instance, var_, list_):
 def runmodel(filename, modelfile):
     mname=os.path.dirname(modelfile)
     sys.path.append(mname)
+    print "Importing the mode...1"
     mm=importlib.import_module(os.path.basename(modelfile).split('.')[0])
+    print "Importing the mode...2"
     run_model=getattr(mm, 'run_model')
+    print "Mode is imported .."
     res, instances=run_model(filename)
+    print "model is running "
     return analyse_results (res, instances)
 
 def analyse_results (res, instances):

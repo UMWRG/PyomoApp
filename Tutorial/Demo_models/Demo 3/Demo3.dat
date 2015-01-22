@@ -52,7 +52,7 @@ Urb1
 Ag2
 Ag1;
 
-set  nonstorage_nodes:=
+set  non_storage_nodes:=
 WWTP1
 Hp1
 J1
@@ -104,7 +104,7 @@ param flow_multiplier:
 [WWTP1,Urb2]     1        1        1        1        1        1        1        1        1
 [GW1,Urb1]       1        1        1        1        1        1        1        1        1;
 
-param flow_lower_bound:
+param min_flow:
                  1        2        3        4        5        6        7        8        9:=
 [SR2,SR4]        10       10       10       10       10       10       10       10       10
 [SR1,J1]         10       10       10       10       10       10       10       10       10
@@ -132,7 +132,7 @@ param flow_lower_bound:
 [WWTP1,Urb2]     0        0        0        0        0        0        0        0        0
 [GW1,Urb1]       0        0        0        0        0        0        0        0        0;
   
-param flow_upper_bound:
+param max_flow:
                  1        2        3        4        5        6        7        8        9:=
 [SR2,SR4]        100      100      100      100      100      100      100      100      100
 [SR1,J1]         100      100      100      100      100      100      100      100      100
@@ -170,7 +170,7 @@ SR4            150
 GW1            600
 GW2            600;
 
-param      storage_lower_bound:
+param      min_storage:
              1      2      3      4      5      6     7     8     9:=
 SR1          50     50     50     50     50     50    50    50    50
 SR2          20     20     20     20     20     20    20    20    20
@@ -180,7 +180,7 @@ Desal1       10     10     10     10     10     10    10    10    10
 GW1          300    300    300    300    300    300   300   300   300
 GW2          300    300    300    300    300    300   300   300   300;
   
-param     storage_upper_bound:
+param     max_storage:
              1      2      3      4      5      6      7      8      9:=
 SR1          500    500    500    500    500    500    500    500    500
 SR2          200    200    200    200    200    200    200    200    200
