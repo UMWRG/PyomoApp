@@ -28,40 +28,11 @@ Option                 Short  Parameter  Description
                                          2 lists contain results and model instances. Example is
                                          distributed with the plugin
 
-Specifying the time axis
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-One of the following two options for specifying the time domain of the model is
-mandatory:
-
-**Option 1:**
-
-====================== ====== ========== ======================================
-Option                 Short  Parameter  Description
-====================== ======= ========== ======================================
---start-date            -st   START_DATE  Start date of the time period used for
-                                          simulation.
---end-date              -en   END_DATE    End date of the time period used for
-                                          simulation.
---time-step             -dt   TIME_STEP   Time step used for simulation. The
-                                          time step needs to be specified as a
-                                          valid time length as supported by
-                                          Hydra's unit conversion function (e.g.
-                                          1 s, 3 min, 2 h, 4 day, 1 mon, 1 yr)
-====================== ======= ========== ======================================
-
-**Option 2:**
-
-====================== ====== ========== ======================================
-Option                 Short  Parameter  Description
-====================== ======= ========== ======================================
---time-axis             -tx    TIME_AXIS  Time axis for the modelling period (a
-                                          list of comma separated time stamps).
-====================== ======= ========== ======================================
-
 Example:
 
 -s 4 -t 4  -o "c:\\temp\\input.dat"  -m c:\\temp\\PyomoModel_2.py"
+
+-s 2 -t 2  -o "c:\\temp\\model\\input.dat"  -m c:\\temp\\PyomoModel_3.py"
 
 '''
 

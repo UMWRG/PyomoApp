@@ -60,11 +60,13 @@ Option                 Short  Parameter  Description
                                           list of comma separated time stamps).
 ====================== ======= ========== ======================================
 
-Example:
+Examples:
 
 -s 4 -t 4  -tx 2000-01-01, 2000-02-01, 2000-03-01, 2000-04-01, 2000-05-01, 2000-06-01  -m c:\\temp\\PyomoModel_2.py"
 -o "c:\\temp\\input.dat"
 
+-s 2 -t 2  -tx 2000-01-01, 2000-02-01, 2000-03-01, 2000-04-01, 2000-05-01, 2000-06-01  , 2000-07-01 , 2000-08-01 , 2000-09-01
+-m c:\\temp\\model\\PyomoModel_3.py"
 '''
 
 import os
