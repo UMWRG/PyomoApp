@@ -40,15 +40,15 @@ def  storage_capacity_constraint(model, storage_nodes):
 
 # Declaring decision variable X
 # Declaring decision variable X
-model.Q = Var(model.links, domain=NonNegativeReals, bounds=flow_capacity_constraint) #Q_Unit
+model.Q = Var(model.links, domain=NonNegativeReals, bounds=flow_capacity_constraint) #*1e6 m^3 mon^-1
 
 # Declaring state variable S
-model.S = Var(model.storage_nodes, bounds=storage_capacity_constraint) #S_Unit
+model.S = Var(model.storage_nodes, bounds=storage_capacity_constraint) #1e6 m^3
 
 def alpha_bound(model):
     return 0, 1#, model.alpha, 1
 
-model.alpha = Var(model.demand_nodes, bounds=alpha_bound) # alph_Unit
+model.alpha = Var(model.demand_nodes, bounds=alpha_bound) #*%
 
 # Declaring variable alpha
 demand_satisfaction_ratio_bound = Constraint(rule=alpha_bound)
@@ -71,7 +71,7 @@ def get_current_cost(model):
 def objective_function(model):
     return summation(get_current_cost(model), model.alpha)
 
-model.Z = Objective(rule=objective_function, sense=maximize) #Z_Unit
+model.Z = Objective(rule=objective_function, sense=maximize) #*Z_Unit
 
 ##======================================== Declaring constraints
 # Mass balance for non-storage nodes:

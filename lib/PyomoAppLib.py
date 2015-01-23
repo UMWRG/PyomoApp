@@ -274,10 +274,11 @@ def export_arrays(self, resources):
         return attr_outputs
 
 class ModelVarable:
-    def __init__(self, name, owner, desc, data_set=None, data_type=None):
+    def __init__(self, name, owner, desc, unit, data_set=None, data_type=None):
         self.name=name
         self.dec=desc
         self.owner=owner
+        self.unit=unit
         if(data_set!=None):
             self.data_set=data_set
         else:

@@ -9,7 +9,7 @@ import sys
 import importlib
 import pyutilib.component.core
 
-def get_values(instance, var_, list_):
+def get_values(instance, var_, list_, units):
     owner=[]
     x_var = getattr(instance, var_)
     for xx in x_var:
@@ -28,7 +28,11 @@ def get_values(instance, var_, list_):
                     break
             if(varmodel==None):
                 desc="Imported using Pyomo apps"
-                varmodel=ModelVarable(var_, owner, desc)
+                if var_ in units.keys():
+                    unit=units[var_]
+                else:
+                    unit="unit_less"
+                varmodel=ModelVarable(var_, owner, desc, unit)
                 list_.append(varmodel)
             varmodel.add_data(value_)
         except:
@@ -45,9 +49,21 @@ def runmodel(filename, modelfile):
     print "Mode is imported .."
     res, instances=run_model(filename)
     print "model is running "
-    return analyse_results (res, instances)
+    units=get_units(modelfile)
+    return analyse_results (res, instances, units)
 
-def analyse_results (res, instances):
+def get_units(modelfile):
+    units={}
+    contents = open(modelfile, "r")
+    for line in contents:
+        if line.startswith('model.')& (line.__contains__('Var') or line.__contains__('Objective')):
+            lin = line.split("=")
+            name=lin[0].replace('model.','')
+            unit=line.split('#*')[1]
+            units[name.strip()]=unit.strip()
+    return units
+
+def analyse_results (res, instances, units):
     vars={}
     objs={}
     time_step=1
@@ -58,18 +74,18 @@ def analyse_results (res, instances):
                  list_=vars[var_]
             else:
                 list_=[]
-            vars[var_]=get_values(instance, var_, list_)
+            vars[var_]=get_values(instance, var_, list_, units)
 
         for var_ in instance.active_components(Objective):
             if var_ in objs.keys():
                  list_=objs[var_]
             else:
                 list_=[]
-            objs[var_]=get_obj_value(rs, var_, list_)
+            objs[var_]=get_obj_value(rs, var_, list_, units)
         time_step+=1
     return vars, objs
 
-def get_obj_value(result, var_, list_):
+def get_obj_value(result, var_, list_, units):
     value_=result.solution[0].objective[1].Value
     varmodel=None
     for varmodel_ in list_:
@@ -78,7 +94,11 @@ def get_obj_value(result, var_, list_):
             break
     if(varmodel==None):
         desc="Imported using Pyomo apps"
-        varmodel=ModelVarable(var_, 'Network', desc)
+        if var_ in units.keys():
+            unit=units[var_]
+        else:
+            unit="unit_less"
+        varmodel=ModelVarable(var_, 'Network', desc, unit)
         list_.append(varmodel)
     varmodel.add_data(value_)
     return list_
