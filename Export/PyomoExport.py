@@ -75,7 +75,6 @@ if lib_path not in sys.path:
 
 from PyomoAppLib import commandline_parser
 from PyomoAppLib import cocnvert_to_int
-from PyomoAppLib import read_inputData
 from PyomoExporter import Exporter
 from HydraLib import PluginLib
 

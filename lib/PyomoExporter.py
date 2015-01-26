@@ -5,29 +5,17 @@ __author__ = 'K Mohamed'
 #example
 #
 
-import sys
-
 import re
 
 from datetime import datetime
 from datetime import timedelta
-from string import ascii_lowercase
 
-from HydraLib import PluginLib
 from HydraLib.PluginLib import JsonConnection
-from HydraLib.HydraException import HydraPluginError
-from HydraLib.util import array_dim, parse_array
 from HydraLib.dateutil import guess_timefmt, date_to_string
-from HydraLib.PluginLib import HydraResource
 from HydraLib.PluginLib import HydraNetwork
 from PyomoAppLib import get_link_name
 from PyomoAppLib import translate_attr_name
-
-import os
-import sys
-
-import traceback
-
+import json
 import logging
 log = logging.getLogger(__name__)
 
@@ -186,7 +174,23 @@ class Exporter (object):
                         attrb_tables[attr.name]=attr
                         attributes.append(attr)
                         attr_names.append(attr.name)
+
         if len(attributes) > 0:
+            dataset_ids = []
+            for attribute in attributes:
+                for resource in resources:
+                    attr = resource.get_attribute(attr_name=attribute.name)
+                    if attr is not None and attr.dataset_id is not None:
+                        dataset_ids.append(attr.dataset_id)
+
+            soap_times = []
+            for t, timestamp in enumerate(self.time_index.values()):
+                soap_times.append(date_to_string(timestamp))
+
+            all_data = self.connection.call('get_multiple_vals_at_time',
+                                        {'dataset_ids':dataset_ids,
+                                         'timestamps' : soap_times})
+
             for attribute in attributes:
                 self.output_file_contenets.append("\nparam "+attribute.name+":\n")
                 self.output_file_contenets.append(self.write_time())
@@ -200,18 +204,13 @@ class Exporter (object):
                     for t, timestamp in enumerate(self.time_index.values()):
                         attr = resource.get_attribute(attr_name=attribute.name)
                         if attr is not None and attr.dataset_id is not None:
-                            soap_time = [date_to_string(timestamp)]
-                            json_data = self.connection.call('get_val_at_time',
-                                                        {'dataset_id':attr.dataset_id,
-                                                         'timestamps' : soap_time})
-                            if json_data.data is None:
-                                raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
-
-                            data = parse_array(json_data.data)[0]
+                            soap_time = date_to_string(timestamp)
+                            data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
 
                             if data is None:
                                 continue
-                            data_str = ' %14f' % data
+
+                            data_str = ' %14f' % float(data)
                             #self.output_file_contenets.append("   "+data_str)
                             contents.append("   "+data_str)
                     if len(contents)>0:
