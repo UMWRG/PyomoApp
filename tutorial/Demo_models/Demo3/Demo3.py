@@ -209,5 +209,5 @@ def display_variables (instance):
 ##========================
 # running the model in a loop for each time step
 if __name__ == '__main__':
-    run_model("demo3.dat")
+    run_model("Demo3.dat")
     #run_model("input.dat")
