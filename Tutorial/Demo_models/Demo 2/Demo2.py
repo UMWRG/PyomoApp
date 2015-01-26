@@ -2,9 +2,9 @@
 
 # Importing needed Packages
 
-from coopr.pyomo import *
-import coopr.environ
-from coopr.opt import SolverFactory
+from pyomo.environ import *
+
+from pyomo.opt import SolverFactory
 
 # Declaring the model
 model = AbstractModel()

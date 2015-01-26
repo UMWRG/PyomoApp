@@ -117,7 +117,7 @@ class Importer:
                                 if attr.attr_is_var == 'Y':
                                     dataset = dict(name = 'Pyomo import - ' + link.name + ' ' \
                                             + varModel.name)
-                                dataset['unit'] = 'Pyomo unit'
+                                dataset['unit'] = varModel.unit
                                 if len(varModel.data_set)>1:
                                     dataset['type'] = 'timeseries'
                                     dataset['value'] = self.create_timeseries(varModel.data_set)
@@ -144,7 +144,7 @@ class Importer:
                                 if attr.attr_is_var == 'Y':
                                     dataset = dict(name = 'Pyomo import - ' + node.name + ' ' \
                                         + varModel.name)
-                                    dataset['unit'] = 'Pyomo unit'
+                                    dataset['unit'] = varModel.unit
                                     if len(varModel.data_set)>1:
                                         dataset['type'] = 'timeseries'
                                         dataset['value'] = self.create_timeseries(varModel.data_set)
@@ -174,7 +174,7 @@ class Importer:
                         if self.attrs[attr.attr_id] == varModel.name:
                             dataset = dict(name = 'Pyomo import - ' + self.network.name + ' ' \
                                             + varModel.name)
-                            dataset['unit'] = 'Pyomo unit'
+                            dataset['unit'] = varModel.unit
                             if len(varModel.data_set)>1:
                                 dataset['type'] = 'timeseries'
                                 dataset['value'] = self.create_timeseries(varModel.data_set)

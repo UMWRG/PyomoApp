@@ -2,9 +2,9 @@
 
 # Importing needed Packages
 
-from coopr.pyomo import *
-import coopr.environ
-from coopr.opt import SolverFactory
+from pyomo.environ import *
+
+from pyomo.opt import SolverFactory
 
 # Declaring the model
 model = AbstractModel()
@@ -40,15 +40,15 @@ def  storage_capacity_constraint(model, storage_nodes):
 
 # Declaring decision variable X
 # Declaring decision variable X
-model.X = Var(model.links, domain=NonNegativeReals, bounds=flow_capacity_constraint)
+model.Q = Var(model.links, domain=NonNegativeReals, bounds=flow_capacity_constraint) #*1e6 m^3 mon^-1
 
 # Declaring state variable S
-model.S = Var(model.storage_nodes, bounds=storage_capacity_constraint)
+model.S = Var(model.storage_nodes, bounds=storage_capacity_constraint) #1e6 m^3
 
 def alpha_bound(model):
     return 0, 1#, model.alpha, 1
 
-model.alpha = Var(model.demand_nodes, bounds=alpha_bound)
+model.alpha = Var(model.demand_nodes, bounds=alpha_bound) #*%
 
 # Declaring variable alpha
 demand_satisfaction_ratio_bound = Constraint(rule=alpha_bound)
@@ -71,7 +71,7 @@ def get_current_cost(model):
 def objective_function(model):
     return summation(get_current_cost(model), model.alpha)
 
-model.Z = Objective(rule=objective_function, sense=maximize)
+model.Z = Objective(rule=objective_function, sense=maximize) #*Z_Unit
 
 ##======================================== Declaring constraints
 # Mass balance for non-storage nodes:
@@ -79,7 +79,7 @@ model.Z = Objective(rule=objective_function, sense=maximize)
 def mass_balance(model, nonstorage_nodes):
     # inflow
     term1 = model.inflow[nonstorage_nodes, model.current_time_step]
-    term2 = sum([model.X[node_in, nonstorage_nodes]*model.flow_multiplier[node_in, nonstorage_nodes, model.current_time_step]
+    term2 = sum([model.Q[node_in, nonstorage_nodes]*model.flow_multiplier[node_in, nonstorage_nodes, model.current_time_step]
                   for node_in in model.nodes if (node_in, nonstorage_nodes) in model.links])
     # outflow
     if nonstorage_nodes in model.demand_nodes:
@@ -87,7 +87,7 @@ def mass_balance(model, nonstorage_nodes):
     else:
         term3 = 0
 
-    term4 = sum([model.X[nonstorage_nodes, node_out]
+    term4 = sum([model.Q[nonstorage_nodes, node_out]
                   for node_out in model.nodes if (nonstorage_nodes, node_out) in model.links])
 
     # inflow - outflow = 0:
@@ -99,11 +99,11 @@ model.mass_balance_const = Constraint(model.non_storage_nodes, rule=mass_balance
 def storage_mass_balance(model, storage_nodes):
     # inflow
     term1 = model.inflow[storage_nodes, model.current_time_step]
-    term2 = sum([model.X[node_in, storage_nodes]*model.flow_multiplier[node_in, storage_nodes, model.current_time_step]
+    term2 = sum([model.Q[node_in, storage_nodes]*model.flow_multiplier[node_in, storage_nodes, model.current_time_step]
                   for node_in in model.nodes if (node_in, storage_nodes) in model.links])
 
     # outflow
-    term3 = sum([model.X[storage_nodes, node_out]
+    term3 = sum([model.Q[storage_nodes, node_out]
                   for node_out in model.nodes if (storage_nodes, node_out) in model.links])
 
     # storage
@@ -174,13 +174,27 @@ def run_model(datafile):
         print res
         count+=1
     count=1
-
+    for inst in insts:
+        print " ========= Time step:  %s =========="%count
+        display_variables(inst)
+        count+=1
     return list, insts
 
-
+def display_variables (instance):
+    for var in instance.active_components(Var):
+            s_var = getattr(instance, var)
+            print "=================="
+            print "Variable: %s"%s_var
+            print "=================="
+            for vv in s_var:
+                if len(vv) ==2:
+                    name="[" + ', '.join(map(str,vv)) + "]"
+                else:
+                    name= ''.join(map(str,vv))
+                print name,": ",(s_var[vv].value)
 
 ##========================
 # running the model in a loop for each time step
 if __name__ == '__main__':
-    run_model("c:\\temp\\model\\input_M3.dat")
-    #run_model("demo3.dat")
+    run_model("demo3.dat")
+    #run_model("input.dat")
