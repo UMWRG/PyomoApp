@@ -2,9 +2,9 @@
 
 # Importing needed Packages
 
-from coopr.pyomo import *
-import coopr.environ
-from coopr.opt import SolverFactory
+from pyomo.environ import *
+
+from pyomo.opt import SolverFactory
 
 # Declaring the model
 model = AbstractModel()
@@ -196,5 +196,5 @@ def display_variables (instance):
 ##========================
 # running the model in a loop for each time step
 if __name__ == '__main__':
-    run_model("c:\\temp\\model\\input_M3.dat")
+    run_model("demo3.dat")
     #run_model("input.dat")

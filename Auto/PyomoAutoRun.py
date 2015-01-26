@@ -88,7 +88,7 @@ from PyomoExporter import Exporter
 from PyomoImporter import Importer
 from PyomoWrapper import runmodel
 from HydraLib import PluginLib
-from coopr.pyomo import *
+
 
 def export_data(args):
     template_id = None

@@ -1,8 +1,8 @@
 __author__ = 'K. Mohamed'
 
-#from PyomoModel_2 import PyMode as model
-from coopr.pyomo import *
-import coopr.environ
+
+from pyomo.environ import *
+
 from PyomoAppLib import ModelVarable
 import os
 import sys
@@ -61,6 +61,7 @@ def get_units(modelfile):
             name=lin[0].replace('model.','')
             unit=line.split('#*')[1]
             units[name.strip()]=unit.strip()
+    contents.close()
     return units
 
 def analyse_results (res, instances, units):
