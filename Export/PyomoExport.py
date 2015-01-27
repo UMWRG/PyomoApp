@@ -59,6 +59,8 @@ Example:
 
 -s 4 -t 4  -tx  2000-01-01, 2000-02-01, 2000-03-01, 2000-04-01, 2000-05-01, 2000-06-01 -o "c:\\temp\\input.dat"
 
+-s 9 -t 8  -tx  2000-01-01, 2000-02-01, 2000-03-01, 2000-04-01, 2000-05-01, 2000-06-01 , 2000-07-01 , 2000-08-01 , 2000-09-01 -o "c:\\temp\\input_s.dat"
+
 '''
 
 import os
@@ -75,7 +77,6 @@ if lib_path not in sys.path:
 
 from PyomoAppLib import commandline_parser
 from PyomoAppLib import cocnvert_to_int
-from PyomoAppLib import read_inputData
 from PyomoExporter import Exporter
 from HydraLib import PluginLib
 
