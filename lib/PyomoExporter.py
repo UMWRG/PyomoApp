@@ -42,7 +42,7 @@ class Exporter (object):
                                                    'scenario_ids':[scenario_id]})
 
         log.info("Network retrieved")
-        attrs = self.connection.call('get_attributes', {})
+        attrs = self.connection.call('get_all_attributes', {})
         log.info("%s attributes retrieved", len(attrs))
         self.net=net
         self.network= HydraNetwork()

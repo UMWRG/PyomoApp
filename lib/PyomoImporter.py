@@ -2,12 +2,7 @@ __author__ = 'K. Mohamed'
 
 
 from HydraLib.HydraException import HydraPluginError
-from HydraLib import PluginLib
 from HydraLib.PluginLib import JsonConnection
-from HydraLib.util import array_dim, parse_array
-from HydraLib.dateutil import guess_timefmt, date_to_string
-from HydraLib.PluginLib import HydraResource
-from HydraLib.PluginLib import HydraNetwork
 
 
 class Importer:
@@ -54,7 +49,7 @@ class Importer:
                                              'scenario_ids': [int(scenario_id)],
                                              'template_id': None})
         self.res_scenario = self.network.scenarios[0].resourcescenarios
-        attrslist = self.connection.call('get_attributes', {})
+        attrslist = self.connection.call('get_all_attributes', {})
         for attr in attrslist:
             self.attrs.update({attr.id: attr.name})
 
