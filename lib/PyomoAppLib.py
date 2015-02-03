@@ -1,3 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# (c) Copyright 2013, 2014, 2015 University of Manchester\
+#\
+# PyomoAppLib is free software: you can redistribute it and/or modify\
+# it under the terms of the GNU General Public License as published by\
+# the Free Software Foundation, either version 3 of the License, or\
+# (at your option) any later version.\
+#\
+# PyomoAppLib is distributed in the hope that it will be useful,\
+# but WITHOUT ANY WARRANTY; without even the implied warranty of\
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\
+# GNU General Public License for more details.\
+# \
+# You should have received a copy of the GNU General Public License\
+# along with PyomoAppLib.  If not, see <http://www.gnu.org/licenses/>\
+#
+
 __author__ = 'K. Mohamed'
 
 
@@ -43,6 +61,12 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
                         simulation.''')
     parser.add_argument('-dt', '--time-step',
                         help='''Time step used for simulation.''')
+    parser.add_argument('-u', '--server_url',
+                        help='''Specify the URL of the server to which this
+                        plug-in connects.''')
+    parser.add_argument('-c', '--session_id',
+                        help='''Session ID. If this does not exist, a login will be
+                        attempted based on details in config.''')
     return parser
 
 def commandline_parser_run_import():
@@ -67,7 +91,12 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
     parser.add_argument('-m', '--model-file',
                         help='''Full path to the pyomo model (*.py) used for
                         the simulation.''')
-
+    parser.add_argument('-u', '--server_url',
+                        help='''Specify the URL of the server to which this
+                        plug-in connects.''')
+    parser.add_argument('-c', '--session_id',
+                        help='''Session ID. If this does not exist, a login will be
+                        attempted based on details in config.''')
     return parser
 
 def commandline_parser_export():
@@ -104,6 +133,12 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
                         simulation.''')
     parser.add_argument('-dt', '--time-step',
                         help='''Time step used for simulation.''')
+    parser.add_argument('-u', '--server_url',
+                        help='''Specify the URL of the server to which this
+                        plug-in connects.''')
+    parser.add_argument('-c', '--session_id',
+                        help='''Session ID. If this does not exist, a login will be
+                        attempted based on details in config.''')    
     return parser
 
 def commandline_parser():
@@ -144,9 +179,15 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
                         simulation.''')
     parser.add_argument('-dt', '--time-step',
                         help='''Time step used for simulation.''')
+    parser.add_argument('-u', '--server_url',
+                        help='''Specify the URL of the server to which this
+                        plug-in connects.''')
+    parser.add_argument('-c', '--session_id',
+                        help='''Session ID. If this does not exist, a login will be
+                        attempted based on details in config.''')
     return parser
 
-def cocnvert_to_int(value, type):
+def convert_to_int(value, type):
     try:
         value=int (value)
         return value

@@ -2,10 +2,10 @@
     <plugin_name>Pyomo Run and Import Plugin</plugin_name>
     <plugin_dir>PyomoRunImport.exe</plugin_dir>
     <plugin_description>
-        Import a gdx results file into Hydra.
+        Run a pyomo model and automatically import the results to Hydra.
 	</plugin_description>
-	<smallicon>pyomo_icon16.png</smallicon>
-    <largeicon>pyomo_icon32.png</largeicon>
+	<smallicon>pyomo_import_16.png</smallicon>
+    <largeicon>pyomo_import_32.png</largeicon>
     <plugin_epilog>For more information visit hydra platform website</plugin_epilog>
 	<mandatory_args>
         <arg>
@@ -13,7 +13,7 @@
             <switch>-t</switch>
             <multiple>N</multiple>
             <allownew>N</allownew>
-            <argtype>string</argtype>
+            <argtype>network</argtype>
             <help>ID of the network where results will be imported to. This coincides with the network exported to pyomo..</help>
         </arg>
         <arg>
@@ -21,7 +21,7 @@
             <switch>-s</switch>
             <multiple>N</multiple>
             <allownew>N</allownew>
-            <argtype>string</argtype>
+            <argtype>scenario</argtype>
             <help> ID of the underlying scenario used for the most recent simulation run.</help>
         </arg>
          <arg>
@@ -42,7 +42,22 @@
         </arg>
     </mandatory_args>
    <non_mandatory_args>
-
+        <arg>
+            <name>server_url</name>
+            <switch>-u</switch>
+            <multiple>N</multiple>
+            <argtype>string</argtype>
+            <help>Specify the URL of the server to which this
+                        plug-in connects.</help>
+        </arg>
+        <arg>
+            <name>session_id</name>
+            <switch>-c</switch>
+            <multiple>N</multiple>
+            <argtype>string</argtype>
+            <help>Specify the session ID for the connection. If not specified,
+            the plugin will try to connect based on the credentials it finds in config</help>
+        </arg>
     </non_mandatory_args>
     <switches>
     </switches>

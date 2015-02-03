@@ -1,3 +1,20 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# (c) Copyright 2013, 2014, 2015 University of Manchester\
+#\
+# PyomoRunImport is free software: you can redistribute it and/or modify\
+# it under the terms of the GNU General Public License as published by\
+# the Free Software Foundation, either version 3 of the License, or\
+# (at your option) any later version.\
+#\
+# PyomoRunImport is distributed in the hope that it will be useful,\
+# but WITHOUT ANY WARRANTY; without even the implied warranty of\
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\
+# GNU General Public License for more details.\
+# \
+# You should have received a copy of the GNU General Public License\
+# along with PyomoRunImport.  If not, see <http://www.gnu.org/licenses/>\
+#
 __author__ = 'K. Mohamed'
 '''
     plugin_name: PyomoApp
@@ -28,6 +45,19 @@ Option                 Short  Parameter  Description
                                          2 lists contain results and model instances. Example is
                                          distributed with the plugin
 
+Server-based arguments
+======================
+
+====================== ====== ========== =========================================
+Option                 Short  Parameter  Description
+====================== ====== ========== =========================================
+``--server_url``       ``-u`` SERVER_URL   Url of the server the plugin will 
+                                           connect to.
+                                           Defaults to localhost.
+``--session_id``       ``-c`` SESSION_ID   Session ID used by the calling software
+                                           If left empty, the plugin will attempt 
+                                           to log in itself.
+                                         
 Example:
 
 -s 4 -t 4  -o "c:\\temp\\input.dat"  -m c:\\temp\\PyomoModel_2.py"
@@ -48,19 +78,20 @@ lib_path = os.path.realpath(os.path.abspath(pyomolibpath))
 if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
-from PyomoAppLib import commandline_parser
-from PyomoAppLib import cocnvert_to_int
+from PyomoAppLib import commandline_parser_run_import
+from PyomoAppLib import convert_to_int
 from PyomoAppLib import read_inputData
 from PyomoExporter import Exporter
 from PyomoImporter import Importer
 from PyomoWrapper import runmodel
 from HydraLib import PluginLib
 
+import logging
+log = logging.getLogger(__name__)
 
-def import_result(args, vars, objs, actual_time_steps):
-    imp=Importer(vars, objs, actual_time_steps)
+def import_result(args, vars, objs, actual_time_steps, url, session_id):
+    imp=Importer(vars, objs, actual_time_steps, url, session_id)
     imp.load_network(args.network, args.scenario)
-    #imp.set_network(network)
     imp.import_res()
     imp.save()
 
@@ -80,37 +111,35 @@ def check_args(args):
         raise HydraPluginError('model file: '+args.model_file+', is not existed')
     elif args.output==None:
         raise HydraPluginError('No output file specified')
-    elif os.path.exists(os.path.dirname(args.output))==False:
-            raise HydraPluginError('output file directory: '+ os.path.dirname(args.output)+', is not exist')
+    elif os.path.exists(os.path.abspath(args.output))==False:
+        raise HydraPluginError('output file directory '+ os.path.dirname(args.output)+' does not exist')
     elif os.path.isfile(args.output)==False:
-        raise HydraPluginError('output file: '+args.output+', is not existed')
+        raise HydraPluginError('output file '+args.output+' does not exist')
 
 if __name__ == '__main__':
     try:
-        parser = commandline_parser()
+        parser = commandline_parser_run_import()
         args = parser.parse_args()
         check_args(args)
-        netword_id=cocnvert_to_int(args.network, "Network Id")
-        scenario_id=cocnvert_to_int(args.scenario, "scenario Id")
-        vars, objs=runmodel(args.output, args.model_file)
-        actual_time_steps=read_inputData(args.output)
-        import_result(args, vars, objs, actual_time_steps)
+        netword_id  = convert_to_int(args.network, "Network Id")
+        scenario_id = convert_to_int(args.scenario, "scenario Id")
+        vars, objs  = runmodel(args.output, args.model_file)
+        actual_time_steps = read_inputData(args.output)
+        import_result(args, vars, objs, actual_time_steps, url=args.server_url, session_id=args.session_id)
         message="Run successfully"
         print PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], message=message)
     except HydraPluginError, e:
-        import traceback
-        traceback.print_exc(file=sys.stderr)
+        log.exception(e)
         err = PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], errors = [e.message])
         print err
     except Exception as e:
+        log.exception(e)
         errors = []
         if e.message == '':
             if hasattr(e, 'strerror'):
                 errors = [e.strerror]
         else:
             errors = [e.message]
-        import traceback
-        traceback.print_exc(file=sys.stderr)
         err = PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], errors = [e.message])
         print err
 

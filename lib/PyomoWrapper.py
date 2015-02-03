@@ -1,3 +1,20 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# (c) Copyright 2013, 2014, 2015 University of Manchester\
+#\
+# PyomoWrapper is free software: you can redistribute it and/or modify\
+# it under the terms of the GNU General Public License as published by\
+# the Free Software Foundation, either version 3 of the License, or\
+# (at your option) any later version.\
+#\
+# PyomoWrapper is distributed in the hope that it will be useful,\
+# but WITHOUT ANY WARRANTY; without even the implied warranty of\
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\
+# GNU General Public License for more details.\
+# \
+# You should have received a copy of the GNU General Public License\
+# along with PyomoWrapper.  If not, see <http://www.gnu.org/licenses/>\
+#
 __author__ = 'K. Mohamed'
 
 
@@ -8,6 +25,9 @@ import os
 import sys
 import importlib
 import pyutilib.component.core
+
+import logging
+log = logging.getLogger(__name__)
 
 def get_values(instance, var_, list_, units):
     owner=[]
@@ -42,13 +62,13 @@ def get_values(instance, var_, list_, units):
 def runmodel(filename, modelfile):
     mname=os.path.dirname(modelfile)
     sys.path.append(mname)
-    print "Importing the mode...1"
+    log.info("Importing the model from %s ", modelfile)
     mm=importlib.import_module(os.path.basename(modelfile).split('.')[0])
-    print "Importing the mode...2"
+    log.info("Importing the model %s", os.path.basename(modelfile).split('.')[0])
     run_model=getattr(mm, 'run_model')
-    print "Mode is imported .."
+    log.info("Model is imported.")
     res, instances=run_model(filename)
-    print "model is running "
+    log.info("Model is running.")
     units=get_units(modelfile)
     return analyse_results (res, instances, units)
 

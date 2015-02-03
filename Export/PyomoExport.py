@@ -1,3 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# (c) Copyright 2013, 2014, 2015 University of Manchester\
+#\
+# PyomoExport is free software: you can redistribute it and/or modify\
+# it under the terms of the GNU General Public License as published by\
+# the Free Software Foundation, either version 3 of the License, or\
+# (at your option) any later version.\
+#\
+# PyomoExport is distributed in the hope that it will be useful,\
+# but WITHOUT ANY WARRANTY; without even the implied warranty of\
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\
+# GNU General Public License for more details.\
+# \
+# You should have received a copy of the GNU General Public License\
+# along with PyomoExport.  If not, see <http://www.gnu.org/licenses/>\
+#
+
 __author__ = 'K. Mohamed'
 '''
     plugin_name: PyomoApp
@@ -23,6 +41,18 @@ Option                 Short  Parameter  Description
                                          belong to this template are ignored.
 --output              -o    OUTPUT       Filename of the output file.
 
+Server-based arguments
+======================
+
+====================== ====== ========== =========================================
+Option                 Short  Parameter  Description
+====================== ====== ========== =========================================
+``--server_url``       ``-u`` SERVER_URL   Url of the server the plugin will 
+                                           connect to.
+                                           Defaults to localhost.
+``--session_id``       ``-c`` SESSION_ID   Session ID used by the calling software 
+                                           If left empty, the plugin will attempt 
+                                           to log in itself.
 
 Specifying the time axis
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,15 +106,18 @@ if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
 from PyomoAppLib import commandline_parser
-from PyomoAppLib import cocnvert_to_int
+from PyomoAppLib import convert_to_int
 from PyomoExporter import Exporter
 from HydraLib import PluginLib
+
+import logging
+log = logging.getLogger(__name__)
 
 def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    exporter=Exporter(args.output)
+    exporter=Exporter(args.output, args.server_url, args.session_id)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.write_time_index(start_time=args.start_date,
@@ -95,7 +128,7 @@ def export_data(args):
     else:
         raise HydraPluginError('Time axis not specified.')
 
-    exporter.expoty_network(netword_id,  scenario_id, template_id)
+    exporter.export_network(netword_id,  scenario_id, template_id)
     exporter.save_file()
     return exporter.net
 
@@ -121,8 +154,8 @@ if __name__ == '__main__':
         parser = commandline_parser()
         args = parser.parse_args()
         check_args(args)
-        netword_id=cocnvert_to_int(args.network, "Network Id")
-        scenario_id=cocnvert_to_int(args.scenario, "scenario Id")
+        netword_id=convert_to_int(args.network, "Network Id")
+        scenario_id=convert_to_int(args.scenario, "scenario Id")
         network=export_data(args)
         message="Run successfully"
         print PluginLib.create_xml_response('PyomoExporter', args.network, [args.scenario], message=message)

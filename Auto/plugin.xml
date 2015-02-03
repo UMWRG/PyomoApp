@@ -1,10 +1,10 @@
 <plugin_info>
     <plugin_name>Pyomo Automatic run Plugin</plugin_name>
     <plugin_dir>PyomoAutoRun.exe</plugin_dir>
-    <plugin_description>Automatically export input data file, Rum GAMS. then import  results file into Hydra.
+    <plugin_description>Automatically export input data file, Rum Pyomo. then import  results file into Hydra.
 	</plugin_description>
-	<smallicon>pyomo_icon16.png</smallicon>
-    <largeicon>pyomo_icon32.png</largeicon>
+	<smallicon>pyomo_auto_16.png</smallicon>
+    <largeicon>pyomo_auto_32.png</largeicon>
     <plugin_epilog>For more information visit hydra platform website</plugin_epilog>
 	<mandatory_args>
         <arg>
@@ -12,7 +12,7 @@
             <switch>-t</switch>
             <multiple>N</multiple>
             <allownew>N</allownew>
-            <argtype>string</argtype>
+            <argtype>network</argtype>
             <help>ID of the network where results will be imported to. This coincides with the network exported to Pyomo..</help>
         </arg>
         <arg>
@@ -20,16 +20,8 @@
             <switch>-s</switch>
             <multiple>N</multiple>
             <allownew>N</allownew>
-            <argtype>string</argtype>
+            <argtype>scenario</argtype>
             <help> ID of the underlying scenario used for the most recent simulation run.</help>
-        </arg>
-		<arg>
-            <name>template</name>
-            <switch>-tp</switch>
-            <multiple>N</multiple>
-            <allownew>N</allownew>
-            <argtype>string</argtype>
-            <help>ID of the template used for exporting resources. Attributes that don't belong to this template are ignored.</help>
         </arg>
         <arg>
             <name>pyomo-model</name>
@@ -41,6 +33,14 @@
         </arg>
     </mandatory_args>
    <non_mandatory_args>
+   		<arg>
+            <name>template</name>
+            <switch>-tp</switch>
+            <multiple>N</multiple>
+            <allownew>N</allownew>
+            <argtype>template</argtype>
+            <help>ID of the template used for exporting resources. Attributes that don't belong to this template are ignored.</help>
+        </arg>
        <arg>
             <name>output</name>
             <switch>-o</switch>
@@ -88,6 +88,22 @@
             <allownew>N</allownew>
            <argtype>string</argtype>
            <help>Time axis for the modelling period (a list of comma separated time stamps). Either this OR a start-date, end-date, time-step combination MUST be specified.</help>
+        </arg>
+        <arg>
+            <name>server_url</name>
+            <switch>-u</switch>
+            <multiple>N</multiple>
+            <argtype>string</argtype>
+            <help>Specify the URL of the server to which this
+                        plug-in connects.</help>
+        </arg>
+        <arg>
+            <name>session_id</name>
+            <switch>-c</switch>
+            <multiple>N</multiple>
+            <argtype>string</argtype>
+            <help>Specify the session ID for the connection. If not specified,
+            the plugin will try to connect based on the credentials it finds in config</help>
         </arg>
     </non_mandatory_args>
     <switches>
