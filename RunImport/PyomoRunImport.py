@@ -40,9 +40,9 @@ Option                 Short  Parameter  Description
                                          belong to this template are ignored.
 --output              -o    OUTPUT       Filename of the output file.
 
--- model              -m    Pyomo model  Pyomo model file (*.py), it needs to implement method called
-                            file         run_model which take datafile as arguments and return
-                                         2 lists contain results and model instances. Example is
+-- model              -m    Pyomo model  Pyomo model file (*.py), needs to implement a method called
+                            file         run_model which takes a datafile as an argument and returns
+                                         2 lists containing results and model instances. Example is
                                          distributed with the plugin
 
 Server-based arguments
