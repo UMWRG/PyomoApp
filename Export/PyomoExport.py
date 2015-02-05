@@ -109,6 +109,7 @@ from PyomoAppLib import commandline_parser
 from PyomoAppLib import convert_to_int
 from PyomoExporter import Exporter
 from HydraLib import PluginLib
+from HydraLib.PluginLib import write_progress
 
 import logging
 log = logging.getLogger(__name__)

@@ -85,6 +85,7 @@ from PyomoExporter import Exporter
 from PyomoImporter import Importer
 from PyomoWrapper import runmodel
 from HydraLib import PluginLib
+from HydraLib.PluginLib import write_progress
 
 import logging
 log = logging.getLogger(__name__)
