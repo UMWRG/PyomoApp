@@ -119,6 +119,8 @@ from PyomoWrapper import run_model
 from HydraLib import PluginLib
 from HydraLib.PluginLib import write_progress
 
+steps=8
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -126,6 +128,7 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
+    write_progress(1, steps)
     exporter=Exporter(args.output, args.server_url, args.session_id)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
@@ -137,15 +140,21 @@ def export_data(args):
     else:
         raise HydraPluginError('Time axis not specified.')
 
+    write_progress(2, steps)
     exporter.export_network(netword_id,  scenario_id, template_id)
+    write_progress(3, steps)
     exporter.save_file()
     return exporter.net
 
 def import_result(args, vars, objs, actual_time_steps):
+    write_progress(4, steps)
     imp=Importer(vars, objs, actual_time_steps, args.server_url, args.session_id)
+    write_progress(5, steps)
     imp.load_network(args.network, args.scenario)
+    write_progress(6, steps)
     #imp.set_network(network)
     imp.import_res()
+    write_progress(7, steps)
     imp.save()
 
 
@@ -230,6 +239,7 @@ if __name__ == '__main__':
         vars, objs=run_model(args.output, args.model_file)
         actual_time_steps=read_inputData(args.output)
         import_result(args, vars, objs, actual_time_steps)
+        write_progress(8, steps)
         message="Run successfully"
         print PluginLib.create_xml_response('PyomoAuto', args.network, [args.scenario], message=message)
 

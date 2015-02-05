@@ -40,17 +40,11 @@ Option                 Short  Parameter  Description
                                          belong to this template are ignored.
 --output              -o    OUTPUT       Filename of the output file.
 
-<<<<<<< Updated upstream
 -- model              -m    Pyomo model  Pyomo model file (*.py), needs to implement a method called
-                            file         run_model which takes a datafile as an argument and returns
+                            file         run_model which takes the datafile as an argument and returns
                                          2 lists containing results and model instances. Example is
                                          distributed with the plugin
-=======
--- model              -m    Pyomo model  Pyomo model file (*.py), needs to have a method called
-                            file         run_model which takes the datafile as an argument and return
-                                         2 lists containing results and model instances. Example is
-                                         provided with the plugin
->>>>>>> Stashed changes
+
 
 Server-based arguments
 ======================
@@ -97,11 +91,16 @@ import argparse as ap
 
 import logging
 log = logging.getLogger(__name__)
+steps=5
 
 def import_result(args, vars, objs, actual_time_steps, url, session_id):
+    write_progress(1, steps)
     imp=Importer(vars, objs, actual_time_steps, url, session_id)
+    write_progress(2, steps)
     imp.load_network(args.network, args.scenario)
+    write_progress(3, steps)
     imp.import_res()
+    write_progress(4, steps)
     imp.save()
 
 def commandline_parser_run_import():
@@ -165,6 +164,7 @@ if __name__ == '__main__':
         vars, objs  = run_model(args.output, args.model_file)
         actual_time_steps = read_inputData(args.output)
         import_result(args, vars, objs, actual_time_steps, url=args.server_url, session_id=args.session_id)
+        write_progress(5, steps)
         message="Run successfully"
         print PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], message=message)
     except HydraPluginError, e:

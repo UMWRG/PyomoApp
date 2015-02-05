@@ -108,19 +108,18 @@ if lib_path not in sys.path:
 from PyomoAppLib import convert_to_int
 from PyomoExporter import Exporter
 from HydraLib import PluginLib
-<<<<<<< Updated upstream
 from HydraLib.PluginLib import write_progress
-
-=======
 import argparse as ap
->>>>>>> Stashed changes
+
 import logging
 log = logging.getLogger(__name__)
 
+steps=4
 def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
+    write_progress(1, steps)
     exporter=Exporter(args.output, args.server_url, args.session_id)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
@@ -131,8 +130,10 @@ def export_data(args):
         exporter.write_time_index(time_axis=args.time_axis)
     else:
         raise HydraPluginError('Time axis not specified.')
+    write_progress(2, steps)
 
     exporter.export_network(netword_id,  scenario_id, template_id)
+    write_progress(3, steps)
     exporter.save_file()
     return exporter.net
 
@@ -202,6 +203,7 @@ if __name__ == '__main__':
         netword_id=convert_to_int(args.network, "Network Id")
         scenario_id=convert_to_int(args.scenario, "scenario Id")
         network=export_data(args)
+        write_progress(4, steps)
         message="Run successfully"
         print PluginLib.create_xml_response('PyomoExporter', args.network, [args.scenario], message=message)
     except HydraPluginError, e:
