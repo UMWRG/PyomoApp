@@ -16,130 +16,13 @@
 # along with PyomoAppLib.  If not, see <http://www.gnu.org/licenses/>\
 #
 
+from HydraLib import PluginLib
 __author__ = 'K. Mohamed'
 
 
 import argparse as ap
-from HydraLib import PluginLib
 import sys
 
-
-def commandline_parser_auto():
-    parser = ap.ArgumentParser(
-        description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
-
-Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
-(c) Copyright 2015, Univeristy of Manchester.
-        """, epilog="For more information visit www.hydraplatform.org",
-        formatter_class=ap.RawDescriptionHelpFormatter)
-    # Mandatory arguments
-    #parser.add_argument('-p', '--project',
-    #                    help='''ID of the project that will be exported.''')
-    parser.add_argument('-t', '--network',
-                        help='''ID of the network that will be exported.''')
-    parser.add_argument('-s', '--scenario',
-                        help='''ID of the scenario that will be exported.''')
-
-    parser.add_argument('-tp', '--template-id',
-                        help='''ID of the template to be used.''')
-
-    parser.add_argument('-m', '--model-file',
-                        help='''Full path to the pyomo model (*.py) used for
-                        the simulation.''')
-    parser.add_argument('-o', '--output',
-                        help='''Filename of the output file.''')
-
-    parser.add_argument('-tx', '--time-axis', nargs='+',
-                        help='''Time axis for the modelling period (a list of
-                        comma separated time stamps).''')
-
-    parser.add_argument('-st', '--start-date',
-                        help='''Start date of the time period used for
-                        simulation.''')
-    parser.add_argument('-en', '--end-date',
-                        help='''End date of the time period used for
-                        simulation.''')
-    parser.add_argument('-dt', '--time-step',
-                        help='''Time step used for simulation.''')
-    parser.add_argument('-u', '--server_url',
-                        help='''Specify the URL of the server to which this
-                        plug-in connects.''')
-    parser.add_argument('-c', '--session_id',
-                        help='''Session ID. If this does not exist, a login will be
-                        attempted based on details in config.''')
-    return parser
-
-def commandline_parser_run_import():
-    parser = ap.ArgumentParser(
-        description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
-
-Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
-(c) Copyright 2015, Univeristy of Manchester.
-        """, epilog="For more information visit www.hydraplatform.org",
-        formatter_class=ap.RawDescriptionHelpFormatter)
-    # Mandatory arguments
-    #parser.add_argument('-p', '--project',
-    #                    help='''ID of the project that will be exported.''')
-    parser.add_argument('-t', '--network',
-                        help='''ID of the network that will be exported.''')
-    parser.add_argument('-s', '--scenario',
-                        help='''ID of the scenario that will be exported.''')
-
-    parser.add_argument('-o', '--output',
-                        help='''Filename of the output file.''')
-
-    parser.add_argument('-m', '--model-file',
-                        help='''Full path to the pyomo model (*.py) used for
-                        the simulation.''')
-    parser.add_argument('-u', '--server_url',
-                        help='''Specify the URL of the server to which this
-                        plug-in connects.''')
-    parser.add_argument('-c', '--session_id',
-                        help='''Session ID. If this does not exist, a login will be
-                        attempted based on details in config.''')
-    return parser
-
-def commandline_parser_export():
-    parser = ap.ArgumentParser(
-        description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
-
-Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
-(c) Copyright 2015, Univeristy of Manchester.
-        """, epilog="For more information visit www.hydraplatform.org",
-        formatter_class=ap.RawDescriptionHelpFormatter)
-    # Mandatory arguments
-    #parser.add_argument('-p', '--project',
-    #                    help='''ID of the project that will be exported.''')
-    parser.add_argument('-t', '--network',
-                        help='''ID of the network that will be exported.''')
-    parser.add_argument('-s', '--scenario',
-                        help='''ID of the scenario that will be exported.''')
-
-    parser.add_argument('-tp', '--template-id',
-                        help='''ID of the template to be used.''')
-
-    parser.add_argument('-o', '--output',
-                        help='''Filename of the output file.''')
-
-    parser.add_argument('-tx', '--time-axis', nargs='+',
-                        help='''Time axis for the modelling period (a list of
-                        comma separated time stamps).''')
-
-    parser.add_argument('-st', '--start-date',
-                        help='''Start date of the time period used for
-                        simulation.''')
-    parser.add_argument('-en', '--end-date',
-                        help='''End date of the time period used for
-                        simulation.''')
-    parser.add_argument('-dt', '--time-step',
-                        help='''Time step used for simulation.''')
-    parser.add_argument('-u', '--server_url',
-                        help='''Specify the URL of the server to which this
-                        plug-in connects.''')
-    parser.add_argument('-c', '--session_id',
-                        help='''Session ID. If this does not exist, a login will be
-                        attempted based on details in config.''')    
-    return parser
 
 def commandline_parser():
     parser = ap.ArgumentParser(

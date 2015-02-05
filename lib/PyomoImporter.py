@@ -21,6 +21,10 @@ __author__ = 'K. Mohamed'
 from HydraLib.HydraException import HydraPluginError
 from HydraLib.PluginLib import JsonConnection
 
+import json
+import logging
+log = logging.getLogger(__name__)
+
 
 class Importer:
     def __init__(self, vars, objs, actual_time_steps, url=None, session_id=None):

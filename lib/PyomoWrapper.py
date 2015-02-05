@@ -59,7 +59,7 @@ def get_values(instance, var_, list_, units):
             pass
     return list_
 
-def runmodel(filename, modelfile):
+def run_model(filename, modelfile):
     mname=os.path.dirname(modelfile)
     sys.path.append(mname)
     log.info("Importing the model from %s ", modelfile)

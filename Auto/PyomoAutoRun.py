@@ -40,10 +40,10 @@ Option                 Short  Parameter  Description
                                          belong to this template are ignored.
 --output              -o    OUTPUT       Filename of the output file.
 
--- model              -m    Pyomo model  Pyomo model file (*.py), it needs to have method called
-                            file         run_model which take datafile as arguments and return
-                                         2 lists contain results and model instances. Example will
-                                         be provided with the plugin
+-- model              -m    Pyomo model  Pyomo model file (*.py), needs to have a method called
+                            file         run_model which takes the datafile as an argument and return
+                                         2 lists containing results and model instances. Example is
+                                         provided with the plugin
 
 Server-based arguments
 ======================
@@ -110,12 +110,12 @@ lib_path = os.path.realpath(os.path.abspath(pyomolibpath))
 if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
-from PyomoAppLib import commandline_parser_auto
+import argparse as ap
 from PyomoAppLib import convert_to_int
 from PyomoAppLib import read_inputData
 from PyomoExporter import Exporter
 from PyomoImporter import Importer
-from PyomoWrapper import runmodel
+from PyomoWrapper import run_model
 from HydraLib import PluginLib
 from HydraLib.PluginLib import write_progress
 
@@ -137,16 +137,62 @@ def export_data(args):
     else:
         raise HydraPluginError('Time axis not specified.')
 
-    exporter.expoty_network(netword_id,  scenario_id, template_id)
+    exporter.export_network(netword_id,  scenario_id, template_id)
     exporter.save_file()
     return exporter.net
 
 def import_result(args, vars, objs, actual_time_steps):
-    imp=Importer(vars, objs, actual_time_steps)
+    imp=Importer(vars, objs, actual_time_steps, args.server_url, args.session_id)
     imp.load_network(args.network, args.scenario)
     #imp.set_network(network)
     imp.import_res()
     imp.save()
+
+
+def commandline_parser_auto():
+    parser = ap.ArgumentParser(
+        description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
+
+Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
+(c) Copyright 2015, Univeristy of Manchester.
+        """, epilog="For more information visit www.hydraplatform.org",
+        formatter_class=ap.RawDescriptionHelpFormatter)
+    # Mandatory arguments
+    #parser.add_argument('-p', '--project',
+    #                    help='''ID of the project that will be exported.''')
+    parser.add_argument('-t', '--network',
+                        help='''ID of the network that will be exported.''')
+    parser.add_argument('-s', '--scenario',
+                        help='''ID of the scenario that will be exported.''')
+
+    parser.add_argument('-tp', '--template-id',
+                        help='''ID of the template to be used.''')
+
+    parser.add_argument('-m', '--model-file',
+                        help='''Full path to the pyomo model (*.py) used for
+                        the simulation.''')
+    parser.add_argument('-o', '--output',
+                        help='''Filename of the output file.''')
+
+    parser.add_argument('-tx', '--time-axis', nargs='+',
+                        help='''Time axis for the modelling period (a list of
+                        comma separated time stamps).''')
+
+    parser.add_argument('-st', '--start-date',
+                        help='''Start date of the time period used for
+                        simulation.''')
+    parser.add_argument('-en', '--end-date',
+                        help='''End date of the time period used for
+                        simulation.''')
+    parser.add_argument('-dt', '--time-step',
+                        help='''Time step used for simulation.''')
+    parser.add_argument('-u', '--server_url',
+                        help='''Specify the URL of the server to which this
+                        plug-in connects.''')
+    parser.add_argument('-c', '--session_id',
+                        help='''Session ID. If this does not exist, a login will be
+                        attempted based on details in config.''')
+    return parser
 
 def check_args(args):
     try:
@@ -173,14 +219,15 @@ def check_args(args):
 
 
 if __name__ == '__main__':
+    parser = commandline_parser_auto()
+    args = parser.parse_args()
     try:
-        parser = commandline_parser_auto()
-        args = parser.parse_args()
+
         check_args(args)
         netword_id=convert_to_int(args.network, "Network Id")
         scenario_id=convert_to_int(args.scenario, "scenario Id")
         network=export_data(args)
-        vars, objs=runmodel(args.output, args.model_file)
+        vars, objs=run_model(args.output, args.model_file)
         actual_time_steps=read_inputData(args.output)
         import_result(args, vars, objs, actual_time_steps)
         message="Run successfully"

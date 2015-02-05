@@ -105,12 +105,15 @@ lib_path = os.path.realpath(os.path.abspath(pyomolibpath))
 if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
-from PyomoAppLib import commandline_parser
 from PyomoAppLib import convert_to_int
 from PyomoExporter import Exporter
 from HydraLib import PluginLib
+<<<<<<< Updated upstream
 from HydraLib.PluginLib import write_progress
 
+=======
+import argparse as ap
+>>>>>>> Stashed changes
 import logging
 log = logging.getLogger(__name__)
 
@@ -149,11 +152,52 @@ def check_args(args):
     elif os.path.exists(os.path.dirname(args.output))==False:
             raise HydraPluginError('output file directory: '+ os.path.dirname(args.output)+', is not exist')
 
+def commandline_parser_export():
+    parser = ap.ArgumentParser(
+        description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
+
+Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
+(c) Copyright 2015, Univeristy of Manchester.
+        """, epilog="For more information visit www.hydraplatform.org",
+        formatter_class=ap.RawDescriptionHelpFormatter)
+    # Mandatory arguments
+    #parser.add_argument('-p', '--project',
+    #                    help='''ID of the project that will be exported.''')
+    parser.add_argument('-t', '--network',
+                        help='''ID of the network that will be exported.''')
+    parser.add_argument('-s', '--scenario',
+                        help='''ID of the scenario that will be exported.''')
+
+    parser.add_argument('-tp', '--template-id',
+                        help='''ID of the template to be used.''')
+
+    parser.add_argument('-o', '--output',
+                        help='''Filename of the output file.''')
+
+    parser.add_argument('-tx', '--time-axis', nargs='+',
+                        help='''Time axis for the modelling period (a list of
+                        comma separated time stamps).''')
+
+    parser.add_argument('-st', '--start-date',
+                        help='''Start date of the time period used for
+                        simulation.''')
+    parser.add_argument('-en', '--end-date',
+                        help='''End date of the time period used for
+                        simulation.''')
+    parser.add_argument('-dt', '--time-step',
+                        help='''Time step used for simulation.''')
+    parser.add_argument('-u', '--server_url',
+                        help='''Specify the URL of the server to which this
+                        plug-in connects.''')
+    parser.add_argument('-c', '--session_id',
+                        help='''Session ID. If this does not exist, a login will be
+                        attempted based on details in config.''')
+    return parser
 
 if __name__ == '__main__':
+    parser = commandline_parser_export()
+    args = parser.parse_args()
     try:
-        parser = commandline_parser()
-        args = parser.parse_args()
         check_args(args)
         netword_id=convert_to_int(args.network, "Network Id")
         scenario_id=convert_to_int(args.scenario, "scenario Id")
