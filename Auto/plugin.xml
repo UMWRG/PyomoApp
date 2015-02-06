@@ -31,6 +31,14 @@
             <argtype>file</argtype>
             <help>Full path to the pyomo model (*.py) used for the simulation.</help>
         </arg>
+         <arg>
+           <name>time-axis</name>
+           <switch>-tx</switch>
+           <multiple>N</multiple>
+            <allownew>N</allownew>
+           <argtype>string</argtype>
+           <help>Time axis for the modelling period (a list of comma separated time stamps). Either this OR a start-date, end-date, time-step combination MUST be specified.</help>
+        </arg>
     </mandatory_args>
    <non_mandatory_args>
    		<arg>
@@ -80,14 +88,6 @@
            <allownew>N</allownew>
            <argtype>string</argtype>
            <help>Time step used for simulation. The time step needs to be specified as a valid time length as supported by Hydra's unit conversion function (e.g. 1 s, 3 min, 2 h, 4 day, 1 mon, 1 yr)</help>
-        </arg>
-         <arg>
-           <name>time-axis</name>
-           <switch>-tx</switch>
-           <multiple>N</multiple>
-            <allownew>N</allownew>
-           <argtype>string</argtype>
-           <help>Time axis for the modelling period (a list of comma separated time stamps). Either this OR a start-date, end-date, time-step combination MUST be specified.</help>
         </arg>
         <arg>
             <name>server_url</name>
