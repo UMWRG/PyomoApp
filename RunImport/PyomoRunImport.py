@@ -179,6 +179,7 @@ if __name__ == '__main__':
                 errors = [e.strerror]
         else:
             errors = [e.message]
+        log.exception(e)
         err = PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], errors = [e.message])
         print err
 

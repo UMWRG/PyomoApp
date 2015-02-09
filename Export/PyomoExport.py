@@ -108,19 +108,16 @@ if lib_path not in sys.path:
 from PyomoAppLib import convert_to_int
 from PyomoExporter import Exporter
 from HydraLib import PluginLib
-from HydraLib.PluginLib import write_progress
 import argparse as ap
 
 import logging
 log = logging.getLogger(__name__)
 
-steps=4
 def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    write_progress(1, steps)
-    exporter=Exporter(args.output, args.server_url, args.session_id)
+    exporter=Exporter(steps, args.output, args.server_url, args.session_id)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.write_time_index(start_time=args.start_date,
@@ -130,10 +127,7 @@ def export_data(args):
         exporter.write_time_index(time_axis=args.time_axis)
     else:
         raise HydraPluginError('Time axis not specified.')
-    write_progress(2, steps)
-
     exporter.export_network(netword_id,  scenario_id, template_id)
-    write_progress(3, steps)
     exporter.save_file()
     return exporter.net
 
@@ -196,6 +190,7 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
     return parser
 
 if __name__ == '__main__':
+    steps=8
     parser = commandline_parser_export()
     args = parser.parse_args()
     try:
@@ -209,6 +204,7 @@ if __name__ == '__main__':
     except HydraPluginError, e:
         import traceback
         traceback.print_exc(file=sys.stderr)
+        log.exception(e)
         err = PluginLib.create_xml_response('PyomoExporter', args.network, [args.scenario], errors = [e.message])
         print err
     except Exception as e:
@@ -219,8 +215,7 @@ if __name__ == '__main__':
         else:
             errors = [e.message]
 
-        import traceback
-        traceback.print_exc(file=sys.stderr)
+        log.exception(e)
         err = PluginLib.create_xml_response('PyomoExporter', args.network, [args.scenario], errors = [e.message])
         print err
 

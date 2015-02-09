@@ -27,14 +27,17 @@ from HydraLib.dateutil import guess_timefmt, date_to_string
 from HydraLib.PluginLib import HydraNetwork
 from PyomoAppLib import get_link_name
 from PyomoAppLib import translate_attr_name
+from HydraLib.PluginLib import write_progress
 import json
 import logging
 log = logging.getLogger(__name__)
 
 class Exporter (object):
 
-    def __init__(self, output_file, url=None, session_id=None):
+    def __init__(self, steps, output_file, url=None, session_id=None):
 
+        self.steps=steps
+        write_progress(1, self.steps)
         self.connection = JsonConnection(url)
         self.output_file=output_file
         self.output_file_contenets=[];
@@ -48,6 +51,7 @@ class Exporter (object):
 
 
     def export_network (self, network_id, scenario_id, template_id ):
+        write_progress(2, self.steps)
         net = self.connection.call('get_network', {'network_id':network_id,
                                                    'include_data': 'Y',
                                                    'template_id':template_id,
@@ -64,9 +68,13 @@ class Exporter (object):
         nodes_map=dict ()
         for node in net.nodes:
             nodes_map[node.id]=node.name
+        write_progress(3, self.steps)
         self.write_nodes()
+        write_progress(4, self.steps)
         self.write_links(nodes_map)
+        write_progress(5, self.steps)
         self.export_node_groups()
+        write_progress(6, self.steps)
         if(len(self.time_index)>0):
             self.output_file_contenets.append('\nset time_step:=')
             for timestep in self.time_index.keys():
@@ -77,9 +85,11 @@ class Exporter (object):
             for timestep in self.time_index.values():
                 self.output_file_contenets.append(" " +str(timestep))
             self.output_file_contenets.append(';\n')
+        write_progress(7, self.steps)
         self.export_data()
 
     def save_file(self):
+        write_progress(8, self.steps)
         log.info("writing data to file")
         file = open(self.output_file, "w")
         file.write("".join(self.output_file_contenets))
