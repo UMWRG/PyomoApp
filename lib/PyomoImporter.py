@@ -89,6 +89,10 @@ class Importer:
         timeseries = {'ts_values': []}
         counter=0
         for time_s in self.actual_time_steps:
+           # if(data[counter] is None):
+           #    data[counter]=-1
+            #print data[counter]
+
             timeseries['ts_values'].append({'ts_time':
                                             time_s,
                                             'ts_value':

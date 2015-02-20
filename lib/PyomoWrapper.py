@@ -73,14 +73,17 @@ def run_model(filename, modelfile):
     return analyse_results (res, instances, units)
 
 def get_units(modelfile):
+    print "From units ...."
     units={}
     contents = open(modelfile, "r")
     for line in contents:
+        line=line.strip()
         if line.startswith('model.')& (line.__contains__('Var') or line.__contains__('Objective')):
             lin = line.split("=")
             name=lin[0].replace('model.','')
-            unit=line.split('#*')[1]
-            units[name.strip()]=unit.strip()
+            if line.__contains__('#*'):
+                unit=line.split('#*')[1]
+                units[name.strip()]=unit.strip()
     contents.close()
     return units
 
@@ -96,6 +99,7 @@ def analyse_results (res, instances, units):
             else:
                 list_=[]
             vars[var_]=get_values(instance, var_, list_, units)
+
 
         for var_ in instance.active_components(Objective):
             if var_ in objs.keys():
