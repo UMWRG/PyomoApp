@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License\
 # along with PyomoImporter.  If not, see <http://www.gnu.org/licenses/>\
 #
+from odbc import dataError
+
 __author__ = 'K. Mohamed'
 
 
@@ -129,31 +131,31 @@ class Importer:
                     #print "Owner: ", type(varModel.owner)
                     fromnode = nodes[link.node_1_id]
                     tonode = nodes[link.node_2_id]
-                    if fromnode in varModel.owner and tonode in varModel.owner:
+                    if len(varModel.owner)==2 and fromnode == varModel.owner[0] and tonode == varModel.owner[1]:
                         # "It is here, link Var: ",var,": ",varModel.owner, ": ", varModel.data_set
                         for attr in link.attributes:
                             if self.attrs[attr.attr_id] == varModel.name:
                                 if attr.attr_is_var == 'Y':
                                     dataset = dict(name = 'Pyomo import - ' + link.name + ' ' \
                                             + varModel.name)
-                                dataset['unit'] = varModel.unit
-                                if len(varModel.data_set)>1:
-                                    dataset['type'] = 'timeseries'
-                                    dataset['value'] = self.create_timeseries(varModel.data_set)
-                                elif len(varModel.data_set) == 1:
-                                     try:
-                                        data = float(varModel.data_set [0])
-                                        dataset['type'] = 'scalar'
-                                        dataset['value'] = \
-                                            self.create_scalar(data)
-                                     except ValueError:
-                                        dataset['type'] = 'descriptor'
-                                        dataset['value'] = self.create_descriptor(varModel.data_set [0])
-                                #print "link attr is added"
-                                res_scen = dict(resource_attr_id = attr.id,
-                                                                attr_id = attr.attr_id,
-                                                                value = dataset)
-                                self.res_scenario.append(res_scen)
+                                    dataset['unit'] = varModel.unit
+                                    if len(varModel.data_set)>1:
+                                        dataset['type'] = 'timeseries'
+                                        dataset['value'] = self.create_timeseries(varModel.data_set)
+                                    elif len(varModel.data_set) == 1:
+                                         try:
+                                            data = float(varModel.data_set [0])
+                                            dataset['type'] = 'scalar'
+                                            dataset['value'] = \
+                                                self.create_scalar(data)
+                                         except ValueError:
+                                            dataset['type'] = 'descriptor'
+                                            dataset['value'] = self.create_descriptor(varModel.data_set [0])
+                                    #print "link attr is added"
+                                    res_scen = dict(resource_attr_id = attr.id,
+                                                                    attr_id = attr.attr_id,
+                                                                    value = dataset)
+                                    self.res_scenario.append(res_scen) #dataset
 
                 for node in self.network.nodes:
                     if node.name in varModel.owner and len(varModel.owner)==1:

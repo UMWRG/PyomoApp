@@ -35,7 +35,6 @@ log = logging.getLogger(__name__)
 class Exporter (object):
 
     def __init__(self, steps, output_file, url=None, session_id=None):
-
         self.steps=steps
         write_progress(1, self.steps)
         self.connection = JsonConnection(url)
