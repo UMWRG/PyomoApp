@@ -28,14 +28,14 @@ class PyMode():
         model.nodes = Set()
         model.links = Set(within=model.nodes*model.nodes)
         model.demand_nodes = Set()
-        model.nonstorage_nodes = Set()
+        model.non_storage_nodes = Set()
         model.storage_nodes = Set()
         model.time_step = Set()
 
         # Declaring model parameters
         model.inflow = Param(model.nodes, model.time_step)
         model.current_time_step = Set()
-        model.consumption_coefficient = Param(model.nodes)
+        model.consumption_coefficient = Param(model.demand_nodes)
         model.initial_storage = Param(model.storage_nodes, mutable=True)
         model.cost = Param(model.links, model.time_step)
         model.flow_multiplier = Param(model.links, model.time_step)
@@ -48,7 +48,7 @@ class PyMode():
 
     # Declaring state variable S
         model.S = Var(model.storage_nodes, domain=NonNegativeReals, bounds=storage_capacity_constraint) #[S unit]
-        model.mass_balance_const = Constraint(model.nonstorage_nodes, rule=mass_balance)
+        model.mass_balance_const = Constraint(model.non_storage_nodes, rule=mass_balance)
         model.storage_mass_balance_const = Constraint(model.storage_nodes, rule=storage_mass_balance)
         self.model=model
 
@@ -119,13 +119,18 @@ def mass_balance(model, nonstorage_nodes):
     term1 = model.inflow[nonstorage_nodes, model.current_time_step]
     term2 = sum([model.X[node_in, nonstorage_nodes]*model.flow_multiplier[node_in, nonstorage_nodes, model.current_time_step]
                   for node_in in model.nodes if (node_in, nonstorage_nodes) in model.links])
+
     # outflow
-    term3 = model.consumption_coefficient[nonstorage_nodes] \
-        * sum([model.X[node_in, nonstorage_nodes]*model.flow_multiplier[node_in, nonstorage_nodes, model.current_time_step]
-               for node_in in model.nodes if (node_in, nonstorage_nodes) in model.links])
+    if(nonstorage_nodes in model.demand_nodes):
+            term3 = model.consumption_coefficient[nonstorage_nodes] \
+                * sum([model.X[node_in, nonstorage_nodes]*model.flow_multiplier[node_in, nonstorage_nodes, model.current_time_step]
+                       for node_in in model.nodes if (node_in, nonstorage_nodes) in model.links])
+    else:
+        term3=0
+
+
     term4 = sum([model.X[nonstorage_nodes, node_out]
                   for node_out in model.nodes if (nonstorage_nodes, node_out) in model.links])
-
     # inflow - outflow = 0:
     return (term1 + term2) - (term3 + term4) == 0
 
