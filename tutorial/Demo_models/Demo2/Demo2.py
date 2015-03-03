@@ -86,6 +86,7 @@ class PyMode():
             instance.load(res) 
             instance.preprocess()
             storage=get_storage(instance)
+            set_delivery(instance)
             instances.append(instance)
             list.append(res)
         for res in list:
@@ -171,6 +172,24 @@ def set_initial_storage(instance, storage):
                 s_var = getattr(instance, var)
                 for vv in s_var:
                     s_var[vv]=storage[vv]
+
+
+def set_delivery(instance):
+    for var in instance.active_components(Var):
+            if(var=="delivery"):
+                s_var = getattr(instance, var)
+                for vv in s_var:
+                    #s_var[vv]=-2
+                    sum=0
+                    for var_2 in instance.active_components(Var):
+                        if(var_2=="Q"):
+                            s_var_2 = getattr(instance, var_2)
+                            for vv2 in s_var_2:
+                                if(vv in vv2):
+                                    sum=sum+s_var_2[vv2].value
+                    s_var[vv]=sum
+
+
 def run_model(datafile):
     pymodel=PyMode()
     return pymodel.run(datafile)
