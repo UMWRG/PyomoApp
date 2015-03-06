@@ -40,6 +40,9 @@ class Exporter (object):
         self.connection = JsonConnection(url)
         self.output_file=output_file
         self.output_file_contenets=[];
+        self.output_file_contenets.append("#*******************************************************************************\n")
+        self.output_file_contenets.append("# Data exported from Hydra using PyomoPlugin.\n")
+        self.output_file_contenets.append("# (c) Copyright 2015, University of Manchester\n")
         self.time_index = {}
 
         if session_id is not None:
@@ -68,11 +71,15 @@ class Exporter (object):
         for node in net.nodes:
             nodes_map[node.id]=node.name
         write_progress(3, self.steps)
+        self.output_file_contenets.append("# Network-ID:  "+str(network_id));
+        self.output_file_contenets.append("\n# Scenario-ID: "+str(scenario_id));
+        self.output_file_contenets.append("\n#*******************************************************************************")
+
         self.write_nodes()
         write_progress(4, self.steps)
         self.write_links(nodes_map)
         write_progress(5, self.steps)
-        self.export_node_groups()
+        #self.export_node_groups()
         nodes_types=self.network.get_node_types(template_id=self.template_id)
         links_types=self.network.get_link_types(template_id=self.template_id)
         self.export_node_types(nodes_types)
@@ -116,6 +123,7 @@ class Exporter (object):
         node_groups = []
         group_strings = []
         groups=""
+        self.output_file_contenets.append("\n#Nodes groups\n")
         for group in self.network.groups:
             group_nodes = self.network.get_node(group=group.ID)
             if len(group_nodes) > 0:
@@ -129,6 +137,7 @@ class Exporter (object):
         "Export node groups if there are any."
         node_groups = []
         group_strings = []
+        self.output_file_contenets.append("\n#Nodes types\n")
         for node_type in nodes_types:
             self.output_file_contenets.append("\nset  "+node_type+":= \n")
             #for node in self.network.nodes:
@@ -142,9 +151,8 @@ class Exporter (object):
             group_strings = []
             for link_type in links_types:
                 self.output_file_contenets.append("\nset  "+link_type+":= \n")
-                #for node in self.network.nodes:
                 for link in self.network.get_link(link_type=link_type):
-                    self.output_file_contenets += link.name + '\n'
+                    self.output_file_contenets.append("\n"+ link.from_node+" "+link.to_node)
                 self.output_file_contenets.append(';\n')
 
     def export_data(self, nodes_types, links_types):
