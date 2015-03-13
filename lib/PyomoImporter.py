@@ -94,7 +94,6 @@ class Importer:
            # if(data[counter] is None):
            #    data[counter]=-1
             #print data[counter]
-
             timeseries['ts_values'].append({'ts_time':
                                             time_s,
                                             'ts_value':

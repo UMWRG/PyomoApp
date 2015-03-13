@@ -52,13 +52,17 @@ class Exporter (object):
             self.connection.login()
 
 
-    def export_network (self, network_id, scenario_id, template_id ):
+    def export_network (self, network_id, scenario_id, template_id, export_type=None):
         write_progress(2, self.steps)
         net = self.connection.call('get_network', {'network_id':network_id,
                                                    'include_data': 'Y',
                                                    'template_id':template_id,
                                                    'scenario_ids':[scenario_id]})
 
+        if(export_type is None or export_type.lower()=='false'):
+            no_type=True
+        else:
+            no_type=False
         log.info("Network retrieved")
         attrs = self.connection.call('get_all_attributes', {})
         log.info("%s attributes retrieved", len(attrs))
@@ -79,7 +83,7 @@ class Exporter (object):
         write_progress(4, self.steps)
         self.write_links(nodes_map)
         write_progress(5, self.steps)
-        #self.export_node_groups()
+        self.export_node_groups()
         nodes_types=self.network.get_node_types(template_id=self.template_id)
         links_types=self.network.get_link_types(template_id=self.template_id)
         self.export_node_types(nodes_types)
@@ -96,7 +100,11 @@ class Exporter (object):
                 self.output_file_contenets.append(" " +str(timestep))
             self.output_file_contenets.append(';\n')
         write_progress(7, self.steps)
-        self.export_data(nodes_types, links_types)
+        if(no_type):
+            self.export_data_no_types()
+        else:
+            self.export_data(nodes_types, links_types)
+
 
     def save_file(self):
         write_progress(8, self.steps)
@@ -170,10 +178,27 @@ class Exporter (object):
             self.export_parameters(links, link_type,'descriptor', res_type='LINK')
             self.export_timeseries(links, link_type, res_type='LINK')
         #
+    def export_data_no_types(self):
+        log.info("Exporting data")
+        # Export node data for each node type
+        #for node_type in nodes_types:
+        #nodes = self.network.get_node(node_type=node_type)
+        self.export_parameters_no_types(self.network.nodes, 'scalar')
+        self.export_parameters_no_types(self.network.nodes,  'descriptor')
+        self.export_timeseries_no_types(self.network.nodes)
+
+        #for link_type in links_types:
+        #links = self.network.get_link(link_type=link_type)
+        self.export_parameters_no_types(self.network.links, 'scalar', res_type='LINK')
+        self.export_parameters_no_types(self.network.links, 'descriptor', res_type='LINK')
+        self.export_timeseries_no_types(self.network.links,  res_type='LINK')
+        #
+
 
     def export_parameters(self, resources, obj_type, datatype, res_type=None):
         """Export scalars or descriptors.
         """
+        self.network.attributes
         islink = res_type == 'LINK'
         attributes = []
         attr_names = []
@@ -208,6 +233,46 @@ class Exporter (object):
                         self.output_file_contenets.append(st)
 
                     self.output_file_contenets.append(';\n')
+
+    def export_parameters_no_types(self, resources, datatype, res_type=None):
+        """
+        Export scalars or descriptors.
+        """
+        islink = res_type == 'LINK'
+        attributes = []
+        attr_names = []
+        for resource in resources:
+            for attr in resource.attributes:
+                if attr.dataset_type == datatype and attr.is_var is False:
+                    translated_attr_name = translate_attr_name(attr.name)
+                    attr.name = translated_attr_name
+                    if attr.name not in attr_names:
+                        attributes.append(attr)
+                        attr_names.append(attr.name)
+
+        if len(attributes) > 0:
+            for attribute in attributes:
+                nname="\nparam "+attribute.name+':='
+                contents=[]
+                #self.output_file_contenets.append("\nparam "+attribute.name+':=')
+                for resource in resources:
+                    attr = resource.get_attribute(attr_name=attribute.name)
+                    if attr is None or attr.value is None:
+                        continue
+
+                    name=resource.name
+                    if islink:
+                        name=get_link_name(resource)
+
+                    #self.output_file_contenets.append("\n "+name+"  "+str(attr.value.values()[0][0]))
+                    contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
+                if len(contents)>0:
+                    self.output_file_contenets.append(nname)
+                    for st in contents:
+                        self.output_file_contenets.append(st)
+
+                    self.output_file_contenets.append(';\n')
+
 
 
     def export_timeseries(self, resources, obj_type, res_type=None):
@@ -277,6 +342,75 @@ class Exporter (object):
                         for st in contents:
                             self.output_file_contenets.append(st)
                 self.output_file_contenets.append(';\n')
+
+    def export_timeseries_no_types(self, resources, res_type=None):
+        """
+        Export time series.
+        """
+        islink = res_type == 'LINK'
+        attributes = []
+        attr_names = []
+        attr_outputs = []
+        attrb_tables={}
+        for resource in resources:
+            for attr in resource.attributes:
+                if attr.dataset_type == 'timeseries' and attr.is_var is False:
+                    attr.name = translate_attr_name(attr.name)
+                    if attr.name not in attr_names:
+                        attrb_tables[attr.name]=attr
+                        attributes.append(attr)
+                        attr_names.append(attr.name)
+
+        if len(attributes) > 0:
+            dataset_ids = []
+
+            #Identify the datasets that we need data for
+            for attribute in attributes:
+                for resource in resources:
+                    attr = resource.get_attribute(attr_name=attribute.name)
+                    if attr is not None and attr.dataset_id is not None:
+                        dataset_ids.append(attr.dataset_id)
+
+            #We need to get the value at each time in the specified time axis,
+            #so we need to identify the relevant timestamps.
+            soap_times = []
+            for t, timestamp in enumerate(self.time_index.values()):
+                soap_times.append(date_to_string(timestamp))
+
+            #Get all the necessary data for all the datasets we have.
+            all_data = self.connection.call('get_multiple_vals_at_time',
+                                        {'dataset_ids':dataset_ids,
+                                         'timestamps' : soap_times})
+
+            for attribute in attributes:
+                self.output_file_contenets.append("\nparam "+attribute.name+":\n")
+                self.output_file_contenets.append(self.write_time())
+                for resource in resources:
+                    name=resource.name
+                    if(islink):
+                        name=get_link_name(resource)
+                    #self.output_file_contenets.append("\n  "+name)
+                    nname="\n  "+name;
+                    contents=[]
+                    for t, timestamp in enumerate(self.time_index.values()):
+                        attr = resource.get_attribute(attr_name=attribute.name)
+                        if attr is not None and attr.dataset_id is not None:
+                            #Get the value at this time in the given timestamp
+                            soap_time = date_to_string(timestamp)
+                            data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
+
+                            if data is None:
+                                continue
+
+                            data_str = ' %14f' % float(data)
+                            #self.output_file_contenets.append("   "+data_str)
+                            contents.append("   "+data_str)
+                    if len(contents)>0:
+                        self.output_file_contenets.append(nname)
+                        for st in contents:
+                            self.output_file_contenets.append(st)
+                self.output_file_contenets.append(';\n')
+
 
     def write_time(self):
         time_string=""

@@ -53,6 +53,10 @@ Option                 Short  Parameter  Description
 ``--session_id``       ``-c`` SESSION_ID   Session ID used by the calling software 
                                            If left empty, the plugin will attempt 
                                            to log in itself.
+''--export_type''      ''-et''             set export data based on types or based on
+                                           attributes only, default is export data by
+                                           attributes if false.
+
 
 Specifying the time axis
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,7 +131,7 @@ def export_data(args):
         exporter.write_time_index(time_axis=args.time_axis)
     else:
         raise HydraPluginError('Time axis not specified.')
-    exporter.export_network(netword_id,  scenario_id, template_id)
+    exporter.export_network(netword_id,  scenario_id, template_id, args.export_type)
     exporter.save_file()
     return exporter.net
 
@@ -187,6 +191,8 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
     parser.add_argument('-c', '--session_id',
                         help='''Session ID. If this does not exist, a login will be
                         attempted based on details in config.''')
+    parser.add_argument('-et', '--export_type',
+                        help='''set export data based on types or based on attributes only, default is export data by attributes if false.''')
     return parser
 
 if __name__ == '__main__':
@@ -198,7 +204,7 @@ if __name__ == '__main__':
         netword_id=convert_to_int(args.network, "Network Id")
         scenario_id=convert_to_int(args.scenario, "scenario Id")
         network=export_data(args)
-        write_progress(4, steps)
+        #write_progress(4, steps)
         message="Run successfully"
         print PluginLib.create_xml_response('PyomoExporter', args.network, [args.scenario], message=message)
     except HydraPluginError, e:
