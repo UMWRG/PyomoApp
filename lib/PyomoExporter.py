@@ -21,6 +21,7 @@ import re
 
 from datetime import datetime
 from datetime import timedelta
+from HydraLib.HydraException import HydraPluginError
 
 from HydraLib.PluginLib import JsonConnection
 from HydraLib.dateutil import guess_timefmt, date_to_string
@@ -59,10 +60,13 @@ class Exporter (object):
                                                    'template_id':template_id,
                                                    'scenario_ids':[scenario_id]})
 
-        if(export_type is None or export_type.lower()=='false'):
+        if(export_type is None or export_type.lower()=='no' or export_type.lower()=='no' ):
             no_type=True
-        else:
+        elif export_type.lower()=='yes' or export_type.lower()=='y':
             no_type=False
+        else:
+            raise HydraPluginError('-et is not specified correctly, needs to be yes or no.')
+
         log.info("Network retrieved")
         attrs = self.connection.call('get_all_attributes', {})
         log.info("%s attributes retrieved", len(attrs))
@@ -74,6 +78,7 @@ class Exporter (object):
         nodes_map=dict ()
         for node in net.nodes:
             nodes_map[node.id]=node.name
+        self.get_longest_node_link_name();
         write_progress(3, self.steps)
         self.output_file_contenets.append("# Network-ID:  "+str(network_id));
         self.output_file_contenets.append("\n# Scenario-ID: "+str(scenario_id));
@@ -101,10 +106,17 @@ class Exporter (object):
             self.output_file_contenets.append(';\n')
         write_progress(7, self.steps)
         if(no_type):
-            self.export_data_no_types()
+            self.export_data_using_attributes ()
         else:
-            self.export_data(nodes_types, links_types)
+            self.export_data_using_types(nodes_types, links_types)
 
+    def get_longest_node_link_name(self):
+        node_name_len=0
+        for node in self.network.nodes:
+            if(len(node.name)>node_name_len):
+                node_name_len=len(node.name)
+
+        self.ff='{0:<'+str(2*node_name_len+5)+'}'
 
     def save_file(self):
         write_progress(8, self.steps)
@@ -112,7 +124,6 @@ class Exporter (object):
         file = open(self.output_file, "w")
         file.write("".join(self.output_file_contenets))
         file.close()
-
 
     def write_nodes(self):
         self.output_file_contenets.append("\n\nset  nodes := ")
@@ -163,39 +174,37 @@ class Exporter (object):
                     self.output_file_contenets.append("\n"+ link.from_node+" "+link.to_node)
                 self.output_file_contenets.append(';\n')
 
-    def export_data(self, nodes_types, links_types):
+    def export_data_using_types(self, nodes_types, links_types):
         log.info("Exporting data")
         # Export node data for each node type
         for node_type in nodes_types:
             nodes = self.network.get_node(node_type=node_type)
-            self.export_parameters(nodes, node_type, 'scalar')
-            self.export_parameters(nodes, node_type, 'descriptor')
-            self.export_timeseries(nodes, node_type)
+            self.export_parameters_using_types(nodes, node_type, 'scalar')
+            self.export_parameters_using_types(nodes, node_type, 'descriptor')
+            self.export_timeseries_using_types(nodes, node_type)
 
         for link_type in links_types:
             links = self.network.get_link(link_type=link_type)
-            self.export_parameters(links, link_type, 'scalar', res_type='LINK')
-            self.export_parameters(links, link_type,'descriptor', res_type='LINK')
-            self.export_timeseries(links, link_type, res_type='LINK')
+            self.export_parameters_using_types(links, link_type, 'scalar', res_type='LINK')
+            self.export_parameters_using_types(links, link_type,'descriptor', res_type='LINK')
+            self.export_timeseries_using_types(links, link_type, res_type='LINK')
         #
-    def export_data_no_types(self):
+    def export_data_using_attributes (self):
         log.info("Exporting data")
         # Export node data for each node type
         #for node_type in nodes_types:
         #nodes = self.network.get_node(node_type=node_type)
-        self.export_parameters_no_types(self.network.nodes, 'scalar')
-        self.export_parameters_no_types(self.network.nodes,  'descriptor')
-        self.export_timeseries_no_types(self.network.nodes)
+        self.export_parameters_using_attributes(self.network.nodes, 'scalar')
+        self.export_parameters_using_attributes(self.network.nodes,  'descriptor')
+        self.export_timeseries_using_attributes(self.network.nodes)
 
         #for link_type in links_types:
         #links = self.network.get_link(link_type=link_type)
-        self.export_parameters_no_types(self.network.links, 'scalar', res_type='LINK')
-        self.export_parameters_no_types(self.network.links, 'descriptor', res_type='LINK')
-        self.export_timeseries_no_types(self.network.links,  res_type='LINK')
+        self.export_parameters_using_attributes(self.network.links, 'scalar', res_type='LINK')
+        self.export_parameters_using_attributes(self.network.links, 'descriptor', res_type='LINK')
+        self.export_timeseries_using_attributes(self.network.links,  res_type='LINK')
         #
-
-
-    def export_parameters(self, resources, obj_type, datatype, res_type=None):
+    def export_parameters_using_types(self, resources, obj_type, datatype, res_type=None):
         """Export scalars or descriptors.
         """
         self.network.attributes
@@ -226,7 +235,7 @@ class Exporter (object):
                         name=get_link_name(resource)
 
                     #self.output_file_contenets.append("\n "+name+"  "+str(attr.value.values()[0][0]))
-                    contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
+                    contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value.values()[0][0])))
                 if len(contents)>0:
                     self.output_file_contenets.append(nname)
                     for st in contents:
@@ -234,7 +243,7 @@ class Exporter (object):
 
                     self.output_file_contenets.append(';\n')
 
-    def export_parameters_no_types(self, resources, datatype, res_type=None):
+    def export_parameters_using_attributes(self, resources, datatype, res_type=None):
         """
         Export scalars or descriptors.
         """
@@ -265,7 +274,7 @@ class Exporter (object):
                         name=get_link_name(resource)
 
                     #self.output_file_contenets.append("\n "+name+"  "+str(attr.value.values()[0][0]))
-                    contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
+                    contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value.values()[0][0])))
                 if len(contents)>0:
                     self.output_file_contenets.append(nname)
                     for st in contents:
@@ -275,7 +284,7 @@ class Exporter (object):
 
 
 
-    def export_timeseries(self, resources, obj_type, res_type=None):
+    def export_timeseries_using_types(self, resources, obj_type, res_type=None):
         """
         Export time series.
         """
@@ -322,7 +331,7 @@ class Exporter (object):
                     if(islink):
                         name=get_link_name(resource)
                     #self.output_file_contenets.append("\n  "+name)
-                    nname="\n  "+name;
+                    nname="\n  "+name
                     contents=[]
                     for t, timestamp in enumerate(self.time_index.values()):
                         attr = resource.get_attribute(attr_name=attribute.name)
@@ -334,16 +343,16 @@ class Exporter (object):
                             if data is None:
                                 continue
 
-                            data_str = ' %14f' % float(data)
+                            data_str = self.ff.format(str(data))
                             #self.output_file_contenets.append("   "+data_str)
-                            contents.append("   "+data_str)
+                            contents.append(data_str)
                     if len(contents)>0:
-                        self.output_file_contenets.append(nname)
+                        self.output_file_contenets.append(self.ff.format(nname))
                         for st in contents:
                             self.output_file_contenets.append(st)
                 self.output_file_contenets.append(';\n')
 
-    def export_timeseries_no_types(self, resources, res_type=None):
+    def export_timeseries_using_attributes(self, resources, res_type=None):
         """
         Export time series.
         """
@@ -402,20 +411,20 @@ class Exporter (object):
                             if data is None:
                                 continue
 
-                            data_str = ' %14f' % float(data)
+                            data_str =self.ff.format(str(data))
                             #self.output_file_contenets.append("   "+data_str)
-                            contents.append("   "+data_str)
+                            contents.append(data_str)
                     if len(contents)>0:
-                        self.output_file_contenets.append(nname)
+                        self.output_file_contenets.append(self.ff.format(nname))
                         for st in contents:
                             self.output_file_contenets.append(st)
                 self.output_file_contenets.append(';\n')
 
 
     def write_time(self):
-        time_string=""
+        time_string=self.ff.format("")
         for t in self.time_index.keys():
-            time_string+=("  "+ str(t))
+            time_string+=(self.ff.format(str(t)))
         time_string+=(':=')
         return time_string
 

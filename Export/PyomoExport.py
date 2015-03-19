@@ -55,8 +55,7 @@ Option                 Short  Parameter  Description
                                            to log in itself.
 ''--export_type''      ''-et''             set export data based on types or based on
                                            attributes only, default is export data by
-                                           attributes if false.
-
+                                           attributes unless this option is set to 'y'.
 
 Specifying the time axis
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,7 +134,6 @@ def export_data(args):
     exporter.save_file()
     return exporter.net
 
-
 def check_args(args):
     try:
         int(args.network)
@@ -192,7 +190,7 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
                         help='''Session ID. If this does not exist, a login will be
                         attempted based on details in config.''')
     parser.add_argument('-et', '--export_type',
-                        help='''set export data based on types or based on attributes only, default is export data by attributes if false.''')
+                        help='''to export data based on types, set this otion to 'y' or 'yes', default is export data by attributes.''')
     return parser
 
 if __name__ == '__main__':
