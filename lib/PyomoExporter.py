@@ -60,7 +60,7 @@ class Exporter (object):
                                                    'template_id':template_id,
                                                    'scenario_ids':[scenario_id]})
 
-        if(export_type is None or export_type.lower()=='no' or export_type.lower()=='no' ):
+        if(export_type is None or export_type.lower()=='no' or export_type.lower()=='n' ):
             no_type=True
         elif export_type.lower()=='yes' or export_type.lower()=='y':
             no_type=False
