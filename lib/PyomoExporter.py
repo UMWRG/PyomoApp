@@ -27,6 +27,7 @@ from HydraLib.PluginLib import JsonConnection
 from HydraLib.dateutil import guess_timefmt, date_to_string
 from HydraLib.PluginLib import HydraNetwork
 from PyomoAppLib import get_link_name
+from PyomoAppLib import get_link_name_for_param
 from PyomoAppLib import translate_attr_name
 from HydraLib.PluginLib import write_progress
 import json
@@ -60,7 +61,7 @@ class Exporter (object):
                                                    'template_id':template_id,
                                                    'scenario_ids':[scenario_id]})
 
-        if(export_type is None or export_type.lower()=='no' or export_type.lower()=='n' ):
+        if export_type is None or export_type.lower()=='no' or export_type.lower()=='n':
             no_type=True
         elif export_type.lower()=='yes' or export_type.lower()=='y':
             no_type=False
@@ -94,7 +95,7 @@ class Exporter (object):
         self.export_node_types(nodes_types)
         self.export_links_types(links_types)
         write_progress(6, self.steps)
-        if(len(self.time_index)>0):
+        if len(self.time_index)>0:
             self.output_file_contenets.append('\nset time_step:=')
             for timestep in self.time_index.keys():
                 self.output_file_contenets.append(" " +str(timestep))
@@ -105,7 +106,7 @@ class Exporter (object):
                 self.output_file_contenets.append(" " +str(timestep))
             self.output_file_contenets.append(';\n')
         write_progress(7, self.steps)
-        if(no_type):
+        if no_type is True:
             self.export_data_using_attributes ()
         else:
             self.export_data_using_types(nodes_types, links_types)
@@ -113,7 +114,7 @@ class Exporter (object):
     def get_longest_node_link_name(self):
         node_name_len=0
         for node in self.network.nodes:
-            if(len(node.name)>node_name_len):
+            if len(node.name)>node_name_len:
                 node_name_len=len(node.name)
 
         self.ff='{0:<'+str(2*node_name_len+5)+'}'
@@ -231,8 +232,8 @@ class Exporter (object):
                         continue
 
                     name=resource.name
-                    if islink:
-                        name=get_link_name(resource)
+                    if islink is True:
+                        name=get_link_name_for_param(resource)
 
                     #self.output_file_contenets.append("\n "+name+"  "+str(attr.value.values()[0][0]))
                     contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value.values()[0][0])))
@@ -270,8 +271,8 @@ class Exporter (object):
                         continue
 
                     name=resource.name
-                    if islink:
-                        name=get_link_name(resource)
+                    if islink is True:
+                        name=get_link_name_for_param(resource)
 
                     #self.output_file_contenets.append("\n "+name+"  "+str(attr.value.values()[0][0]))
                     contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value.values()[0][0])))
@@ -328,7 +329,7 @@ class Exporter (object):
                 self.output_file_contenets.append(self.write_time())
                 for resource in resources:
                     name=resource.name
-                    if(islink):
+                    if islink is True:
                         name=get_link_name(resource)
                     #self.output_file_contenets.append("\n  "+name)
                     nname="\n  "+name
@@ -396,7 +397,7 @@ class Exporter (object):
                 self.output_file_contenets.append(self.write_time())
                 for resource in resources:
                     name=resource.name
-                    if(islink):
+                    if islink is True:
                         name=get_link_name(resource)
                     #self.output_file_contenets.append("\n  "+name)
                     nname="\n  "+name;
