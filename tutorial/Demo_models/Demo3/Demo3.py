@@ -189,7 +189,7 @@ def run_model(datafile):
     count=1
     for inst in insts:
         print " ========= Time step:  %s =========="%count
-        display_variables(inst)
+        #display_variables(inst)
         count+=1
     return list, insts
 

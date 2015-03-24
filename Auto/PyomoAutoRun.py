@@ -56,7 +56,10 @@ Option                 Short  Parameter  Description
                                            Defaults to localhost.
 ``--session_id``       ``-c`` SESSION_ID   Session ID used by the calling software 
                                            If left empty, the plugin will attempt 
-                                           to log in itself.                                         
+                                           to log in itself.
+''--export_type''      ''-et''             set export data based on types or based on
+                                           attributes only, default is export data by
+                                           attributes unless this option is set to 'y'.
 
 Specifying the time axis
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -119,8 +122,6 @@ from PyomoWrapper import run_model
 from HydraLib import PluginLib
 from HydraLib.PluginLib import write_progress
 
-steps=8
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -128,8 +129,7 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    write_progress(1, steps)
-    exporter=Exporter(args.output, args.server_url, args.session_id)
+    exporter=Exporter(steps, args.output, args.server_url, args.session_id)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.write_time_index(start_time=args.start_date,
@@ -140,21 +140,19 @@ def export_data(args):
     else:
         raise HydraPluginError('Time axis not specified.')
 
-    write_progress(2, steps)
-    exporter.export_network(netword_id,  scenario_id, template_id)
-    write_progress(3, steps)
+    exporter.export_network(netword_id,  scenario_id, template_id, args.export_type)
     exporter.save_file()
     return exporter.net
 
 def import_result(args, vars, objs, actual_time_steps):
-    write_progress(4, steps)
+    write_progress(9, steps)
     imp=Importer(vars, objs, actual_time_steps, args.server_url, args.session_id)
-    write_progress(5, steps)
+    write_progress(10, steps)
     imp.load_network(args.network, args.scenario)
-    write_progress(6, steps)
+    write_progress(11, steps)
     #imp.set_network(network)
     imp.import_res()
-    write_progress(7, steps)
+    write_progress(12, steps)
     imp.save()
 
 
@@ -201,6 +199,8 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
     parser.add_argument('-c', '--session_id',
                         help='''Session ID. If this does not exist, a login will be
                         attempted based on details in config.''')
+    parser.add_argument('-et', '--export_type',
+                        help='''to export data based on types, set this otion to 'y' or 'yes', default is export data by attributes.''')
     return parser
 
 def check_args(args):
@@ -231,7 +231,7 @@ if __name__ == '__main__':
     parser = commandline_parser_auto()
     args = parser.parse_args()
     try:
-
+        steps=12
         check_args(args)
         netword_id=convert_to_int(args.network, "Network Id")
         scenario_id=convert_to_int(args.scenario, "scenario Id")
@@ -246,6 +246,7 @@ if __name__ == '__main__':
     except HydraPluginError, e:
         import traceback
         traceback.print_exc(file=sys.stderr)
+        log.exception(e)
         err = PluginLib.create_xml_response('PyomoAuto', args.network, [args.scenario], errors = [e.message])
         print err
     except Exception as e:
@@ -256,8 +257,7 @@ if __name__ == '__main__':
         else:
             errors = [e.message]
 
-        import traceback
-        traceback.print_exc(file=sys.stderr)
+        log.exception(e)
         err = PluginLib.create_xml_response('PyomoAuto', args.network, [args.scenario], errors = [e.message])
         print err
 

@@ -23,6 +23,14 @@
             <argtype>scenario</argtype>
             <help> ID of the underlying scenario used for the most recent simulation run.</help>
         </arg>
+        <arg>
+           <name>time-axis</name>
+           <switch>-tx</switch>
+           <multiple>N</multiple>
+            <allownew>N</allownew>
+           <argtype>string</argtype>
+           <help>Time axis for the modelling period (a list of comma separated time stamps). Either the time axis or a start-time, end-time, time-step combination MUST be specified.</help>
+        </arg>
 		<arg>
             <name>output</name>
             <switch>-o</switch>
@@ -41,6 +49,14 @@
         </arg>
     </mandatory_args>
    <non_mandatory_args>
+       <arg>
+           <name>export-by-type</name>
+           <switch>-et</switch>
+           <multiple>N</multiple>
+           <allownew>N</allownew>
+           <argtype>string</argtype>
+           <help>to export data by types set this option 'y' or 'yes' .</help>
+        </arg>
    		<arg>
             <name>template</name>
             <switch>-tp</switch>
