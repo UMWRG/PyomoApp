@@ -23,9 +23,7 @@ __author__ = 'K. Mohamed'
   - Extrtact the parameters from resuly
   - Import the parameters to Hydra
 
-mandatory_args
-==============
-
+**Mandatory Args:**
 
 ====================== ====== ========== ======================================
 Option                 Short  Parameter  Description
@@ -33,33 +31,43 @@ Option                 Short  Parameter  Description
 --network              -t     NETWORK    ID of the network where results will
                                          be imported to. Ideally this coincides
                                          with the network exported to Pyomo.
---scenario            -s     SCENARIO    ID of the underlying scenario used for
-                                          simulation
---template-id         -tp    TEMPLATE    ID of the template used for exporting
+--scenario             -s     SCENARIO   ID of the underlying scenario used for
+                                         simulation
+--template-id          -tp    TEMPLATE   ID of the template used for exporting
                                          resources. Attributes that don't
                                          belong to this template are ignored.
---output              -o    OUTPUT       Filename of the output file.
+--output               -o     OUTPUT     Filename of the output file.
+--model               -m      MODEL      Pyomo model file (*.py), needs to have
+                                         a method called run_model which 
+                                         takes the datafile as an argument and 
+                                         return 2 lists containing results and 
+                                         model instances. Example is provided 
+                                         with the plugin
+====================== ====== ========== ======================================
 
--- model              -m    Pyomo model  Pyomo model file (*.py), needs to have a method called
-                            file         run_model which takes the datafile as an argument and return
-                                         2 lists containing results and model instances. Example is
-                                         provided with the plugin
+**Server-based arguments**
 
-Server-based arguments
-======================
-
-====================== ====== ========== =========================================
+====================== ====== ========== =======================================
 Option                 Short  Parameter  Description
-====================== ====== ========== =========================================
-``--server_url``       ``-u`` SERVER_URL   Url of the server the plugin will 
-                                           connect to.
-                                           Defaults to localhost.
-``--session_id``       ``-c`` SESSION_ID   Session ID used by the calling software 
-                                           If left empty, the plugin will attempt 
-                                           to log in itself.
-''--export_type''      ''-et''             set export data based on types or based on
-                                           attributes only, default is export data by
-                                           attributes unless this option is set to 'y'.
+====================== ====== ========== =======================================
+--server_url           -u     SERVER_URL Url of the server the plugin will 
+                                         connect to.
+                                         Defaults to localhost.
+--session_id           -c     SESSION_ID Session ID used by the calling software
+                                         If left empty, the plugin will attempt 
+                                         to log in itself.
+====================== ====== ========== =======================================
+
+**Switches:**
+
+====================== ====== =========================================
+Option                 Short  Description
+====================== ====== =========================================
+--export_by_type       -et    Set export data based on types or 
+                              based on attributes only, default is 
+                              export data by attributes unless this
+                              option is set.
+====================== ====== =========================================
 
 Specifying the time axis
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -71,7 +79,7 @@ mandatory:
 
 ====================== ====== ========== ======================================
 Option                 Short  Parameter  Description
-====================== ======= ========== ======================================
+====================== ====== ========== ======================================
 --start-date            -st   START_DATE  Start date of the time period used for
                                           simulation.
 --end-date              -en   END_DATE    End date of the time period used for
@@ -81,16 +89,16 @@ Option                 Short  Parameter  Description
                                           valid time length as supported by
                                           Hydra's unit conversion function (e.g.
                                           1 s, 3 min, 2 h, 4 day, 1 mon, 1 yr)
-====================== ======= ========== ======================================
+====================== ====== ========== ======================================
 
 **Option 2:**
 
 ====================== ====== ========== ======================================
 Option                 Short  Parameter  Description
-====================== ======= ========== ======================================
+====================== ====== ========== ======================================
 --time-axis             -tx    TIME_AXIS  Time axis for the modelling period (a
                                           list of comma separated time stamps).
-====================== ======= ========== ======================================
+====================== ====== ========== ======================================
 
 Examples:
 
@@ -140,7 +148,7 @@ def export_data(args):
     else:
         raise HydraPluginError('Time axis not specified.')
 
-    exporter.export_network(netword_id,  scenario_id, template_id, args.export_type)
+    exporter.export_network(netword_id,  scenario_id, template_id, args.export_by_type)
     exporter.save_file()
     return exporter.net
 
@@ -156,7 +164,7 @@ def import_result(args, vars, objs, actual_time_steps):
     imp.save()
 
 
-def commandline_parser_auto():
+def commandline_parser():
     parser = ap.ArgumentParser(
         description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
 
@@ -199,8 +207,9 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
     parser.add_argument('-c', '--session_id',
                         help='''Session ID. If this does not exist, a login will be
                         attempted based on details in config.''')
-    parser.add_argument('-et', '--export_type',
-                        help='''to export data based on types, set this otion to 'y' or 'yes', default is export data by attributes.''')
+    parser.add_argument('-et', '--export_by_type', action='store_true',
+                        help='''Use this to export data based on type,
+                        rather than by attribute.''')
     return parser
 
 def check_args(args):
@@ -214,9 +223,9 @@ def check_args(args):
         raise HydraPluginError('No senario is specified')
 
     if args.model_file is None:
-        raise HydraPluginError('model file is not specifed')
+        raise HydraPluginError('Model file is not specifed')
     elif os.path.isfile(args.model_file)==False:
-        raise HydraPluginError('model file: '+args.model_file+', is not existed')
+        raise HydraPluginError('Model file '+args.model_file+' not found.')
     elif args.output==None:
         #if output file is not provided, plug in use default one
         modelpath=os.path.dirname(args.model_file)
@@ -224,11 +233,11 @@ def check_args(args):
         if args.output is None:
             raise HydraPluginError('No output file specified')
     elif os.path.exists(os.path.dirname(args.output))==False:
-            raise HydraPluginError('output file directory: '+ os.path.dirname(args.output)+', is not exist')
+            raise HydraPluginError('Output file directory: '+ os.path.dirname(args.output)+', is not exist')
 
 
 if __name__ == '__main__':
-    parser = commandline_parser_auto()
+    parser = commandline_parser()
     args = parser.parse_args()
     try:
         steps=12
@@ -244,8 +253,6 @@ if __name__ == '__main__':
         print PluginLib.create_xml_response('PyomoAuto', args.network, [args.scenario], message=message)
 
     except HydraPluginError, e:
-        import traceback
-        traceback.print_exc(file=sys.stderr)
         log.exception(e)
         err = PluginLib.create_xml_response('PyomoAuto', args.network, [args.scenario], errors = [e.message])
         print err

@@ -15,15 +15,12 @@
 # You should have received a copy of the GNU General Public License\
 # along with PyomoImporter.  If not, see <http://www.gnu.org/licenses/>\
 #
-from odbc import dataError
-
 __author__ = 'K. Mohamed'
 
 
 from HydraLib.HydraException import HydraPluginError
 from HydraLib.PluginLib import JsonConnection
 
-import json
 import logging
 log = logging.getLogger(__name__)
 

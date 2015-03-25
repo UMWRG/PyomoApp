@@ -84,6 +84,11 @@ def get_link_name(link):
     name='['+ link.from_node+','+link.to_node+']'
     return name
 
+def get_link_name_for_param(link):
+    name= link.from_node+' '+link.to_node
+    return name
+
+
 def translate_attr_name(name):
     """
     Replace non alphanumeric characters with '_'. This function throws an

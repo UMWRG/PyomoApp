@@ -24,9 +24,7 @@ __author__ = 'K. Mohamed'
   - Extrtact the parameters from resuly
   - Import the parameters to Hydra
 
-mandatory_args
-==============
-
+**Mandatory Arguments:**
 
 ====================== ====== ========== ======================================
 Option                 Short  Parameter  Description
@@ -40,22 +38,31 @@ Option                 Short  Parameter  Description
                                          resources. Attributes that don't
                                          belong to this template are ignored.
 --output              -o    OUTPUT       Filename of the output file.
+====================== ====== ========== ======================================
 
-Server-based arguments
-======================
+**Server-based arguments:**
 
 ====================== ====== ========== =========================================
 Option                 Short  Parameter  Description
 ====================== ====== ========== =========================================
-``--server_url``       ``-u`` SERVER_URL   Url of the server the plugin will 
+--server_url           -u     SERVER_URL   Url of the server the plugin will 
                                            connect to.
                                            Defaults to localhost.
-``--session_id``       ``-c`` SESSION_ID   Session ID used by the calling software 
+--session_id           -c     SESSION_ID   Session ID used by the calling software 
                                            If left empty, the plugin will attempt 
                                            to log in itself.
-''--export_type''      ''-et''             set export data based on types or based on
-                                           attributes only, default is export data by
-                                           attributes unless this option is set to 'y'.
+====================== ====== ========== =========================================
+
+**Switches:**
+
+====================== ====== =========================================
+Option                 Short  Description
+====================== ====== =========================================
+--export_by_type       -et    Set export data based on types or 
+                              based on attributes only, default is 
+                              export data by attributes unless this 
+                              option is set.
+====================== ====== =========================================
 
 Specifying the time axis
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -117,6 +124,7 @@ import logging
 log = logging.getLogger(__name__)
 
 def export_data(args):
+    import pudb; pudb.set_trace()
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
@@ -130,7 +138,7 @@ def export_data(args):
         exporter.write_time_index(time_axis=args.time_axis)
     else:
         raise HydraPluginError('Time axis not specified.')
-    exporter.export_network(netword_id,  scenario_id, template_id, args.export_type)
+    exporter.export_network(netword_id,  scenario_id, template_id, args.export_by_type)
     exporter.save_file()
     return exporter.net
 
@@ -149,7 +157,7 @@ def check_args(args):
     elif os.path.exists(os.path.dirname(args.output))==False:
             raise HydraPluginError('output file directory: '+ os.path.dirname(args.output)+', is not exist')
 
-def commandline_parser_export():
+def commandline_parser():
     parser = ap.ArgumentParser(
         description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.
 
@@ -189,13 +197,13 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
     parser.add_argument('-c', '--session_id',
                         help='''Session ID. If this does not exist, a login will be
                         attempted based on details in config.''')
-    parser.add_argument('-et', '--export_type',
-                        help='''to export data based on types, set this otion to 'y' or 'yes', default is export data by attributes.''')
+    parser.add_argument('-et', '--export_by_type', action='store_true',
+                        help='''Use this switch to export data based on types. Default behaviour is to export by attribute.''')
     return parser
 
 if __name__ == '__main__':
     steps=8
-    parser = commandline_parser_export()
+    parser = commandline_parser()
     args = parser.parse_args()
     try:
         check_args(args)
