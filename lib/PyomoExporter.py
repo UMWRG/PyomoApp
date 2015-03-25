@@ -21,7 +21,6 @@ import re
 
 from datetime import datetime
 from datetime import timedelta
-from HydraLib.HydraException import HydraPluginError
 
 from HydraLib.PluginLib import JsonConnection
 from HydraLib.dateutil import guess_timefmt, date_to_string
@@ -41,10 +40,10 @@ class Exporter (object):
         write_progress(1, self.steps)
         self.connection = JsonConnection(url)
         self.output_file=output_file
-        self.output_file_contenets=[];
-        self.output_file_contenets.append("#*******************************************************************************\n")
-        self.output_file_contenets.append("# Data exported from Hydra using PyomoPlugin.\n")
-        self.output_file_contenets.append("# (c) Copyright 2015, University of Manchester\n")
+        self.output_file_contents=[];
+        self.output_file_contents.append("#%s\n"%("*"*78,))
+        self.output_file_contents.append("# Data exported from Hydra using PyomoPlugin.\n")
+        self.output_file_contents.append("# (c) Copyright 2015, University of Manchester\n")
         self.time_index = {}
 
         if session_id is not None:
@@ -54,19 +53,12 @@ class Exporter (object):
             self.connection.login()
 
 
-    def export_network (self, network_id, scenario_id, template_id, export_type=None):
+    def export_network (self, network_id, scenario_id, template_id, export_by_type=False):
         write_progress(2, self.steps)
         net = self.connection.call('get_network', {'network_id':network_id,
                                                    'include_data': 'Y',
                                                    'template_id':template_id,
                                                    'scenario_ids':[scenario_id]})
-
-        if export_type is None or export_type.lower()=='no' or export_type.lower()=='n':
-            no_type=True
-        elif export_type.lower()=='yes' or export_type.lower()=='y':
-            no_type=False
-        else:
-            raise HydraPluginError('-et is not specified correctly, needs to be yes or no.')
 
         log.info("Network retrieved")
         attrs = self.connection.call('get_all_attributes', {})
@@ -81,9 +73,9 @@ class Exporter (object):
             nodes_map[node.id]=node.name
         self.get_longest_node_link_name();
         write_progress(3, self.steps)
-        self.output_file_contenets.append("# Network-ID:  "+str(network_id));
-        self.output_file_contenets.append("\n# Scenario-ID: "+str(scenario_id));
-        self.output_file_contenets.append("\n#*******************************************************************************")
+        self.output_file_contents.append("# Network-ID:  "+str(network_id));
+        self.output_file_contents.append("\n# Scenario-ID: "+str(scenario_id));
+        self.output_file_contents.append("\n#" + "*"*100)
 
         self.write_nodes()
         write_progress(4, self.steps)
@@ -96,20 +88,21 @@ class Exporter (object):
         self.export_links_types(links_types)
         write_progress(6, self.steps)
         if len(self.time_index)>0:
-            self.output_file_contenets.append('\nset time_step:=')
+            self.output_file_contents.append('\nset time_step:=')
             for timestep in self.time_index.keys():
-                self.output_file_contenets.append(" " +str(timestep))
-            self.output_file_contenets.append(';\n')
+                self.output_file_contents.append(" " +str(timestep))
+            self.output_file_contents.append(';\n')
 
-            self.output_file_contenets.append('\nset actual_time_step:=')
+            self.output_file_contents.append('\nset actual_time_step:=')
             for timestep in self.time_index.values():
-                self.output_file_contenets.append(" " +str(timestep))
-            self.output_file_contenets.append(';\n')
+                self.output_file_contents.append(" " +str(timestep))
+            self.output_file_contents.append(';\n')
         write_progress(7, self.steps)
-        if no_type is True:
-            self.export_data_using_attributes ()
-        else:
+
+        if export_by_type is True:
             self.export_data_using_types(nodes_types, links_types)
+        else:
+            self.export_data_using_attributes()
 
     def get_longest_node_link_name(self):
         node_name_len=0
@@ -123,57 +116,51 @@ class Exporter (object):
         write_progress(8, self.steps)
         log.info("writing data to file")
         file = open(self.output_file, "w")
-        file.write("".join(self.output_file_contenets))
+        file.write("".join(self.output_file_contents))
         file.close()
 
     def write_nodes(self):
-        self.output_file_contenets.append("\n\nset  nodes := ")
+        self.output_file_contents.append("\n\nset  nodes := ")
         for node in self.network.nodes:
-            self.output_file_contenets.append(" "+node.name)
-        self.output_file_contenets.append(';')
+            self.output_file_contents.append(" "+node.name)
+        self.output_file_contents.append(';')
 
     def write_links(self, nodes_map):
-        self.output_file_contenets.append("\n\nset  links:= ")
+        self.output_file_contents.append("\n\nset  links:= ")
         for link in self.network.links:
-            self.output_file_contenets.append("\n"+ link.from_node+" "+link.to_node)
-        self.output_file_contenets.append(';\n')
+            self.output_file_contents.append("\n"+ link.from_node+" "+link.to_node)
+        self.output_file_contents.append(';\n')
 
     def export_node_groups(self):
         "Export node groups if there are any."
         node_groups = []
-        group_strings = []
-        groups=""
-        self.output_file_contenets.append("\n#Nodes groups\n")
+        self.output_file_contents.append("\n#Nodes groups\n")
         for group in self.network.groups:
             group_nodes = self.network.get_node(group=group.ID)
             if len(group_nodes) > 0:
                 node_groups.append(group)
-                self.output_file_contenets.append("\nset  "+group.name+":= \n")
+                self.output_file_contents.append("\nset  "+group.name+":= \n")
                 for node in group_nodes:
-                    self.output_file_contenets.append(node.name+'\n')
-                self.output_file_contenets.append(';\n')
+                    self.output_file_contents.append(node.name+'\n')
+                self.output_file_contents.append(';\n')
 
     def export_node_types(self, nodes_types):
         "Export node groups if there are any."
-        node_groups = []
-        group_strings = []
-        self.output_file_contenets.append("\n#Nodes types\n")
+        self.output_file_contents.append("\n#Nodes types\n")
         for node_type in nodes_types:
-            self.output_file_contenets.append("\nset  "+node_type+":= \n")
+            self.output_file_contents.append("\nset  "+node_type+":= \n")
             #for node in self.network.nodes:
             for node in self.network.get_node(node_type=node_type):
-                self.output_file_contenets += node.name + '\n'
-            self.output_file_contenets.append(';\n')
+                self.output_file_contents += node.name + '\n'
+            self.output_file_contents.append(';\n')
 
     def export_links_types(self, links_types):
             "Export node groups if there are any."
-            node_groups = []
-            group_strings = []
             for link_type in links_types:
-                self.output_file_contenets.append("\nset  "+link_type+":= \n")
+                self.output_file_contents.append("\nset  "+link_type+":= \n")
                 for link in self.network.get_link(link_type=link_type):
-                    self.output_file_contenets.append("\n"+ link.from_node+" "+link.to_node)
-                self.output_file_contenets.append(';\n')
+                    self.output_file_contents.append("\n"+ link.from_node+" "+link.to_node)
+                self.output_file_contents.append(';\n')
 
     def export_data_using_types(self, nodes_types, links_types):
         log.info("Exporting data")
@@ -225,7 +212,7 @@ class Exporter (object):
             for attribute in attributes:
                 nname="\nparam "+attribute.name+"_"+obj_type+':='
                 contents=[]
-                #self.output_file_contenets.append("\nparam "+attribute.name+':=')
+                #self.output_file_contents.append("\nparam "+attribute.name+':=')
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
                     if attr is None or attr.value is None:
@@ -235,14 +222,14 @@ class Exporter (object):
                     if islink is True:
                         name=get_link_name_for_param(resource)
 
-                    #self.output_file_contenets.append("\n "+name+"  "+str(attr.value.values()[0][0]))
+                    #self.output_file_contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
                     contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value.values()[0][0])))
                 if len(contents)>0:
-                    self.output_file_contenets.append(nname)
+                    self.output_file_contents.append(nname)
                     for st in contents:
-                        self.output_file_contenets.append(st)
+                        self.output_file_contents.append(st)
 
-                    self.output_file_contenets.append(';\n')
+                    self.output_file_contents.append(';\n')
 
     def export_parameters_using_attributes(self, resources, datatype, res_type=None):
         """
@@ -264,7 +251,7 @@ class Exporter (object):
             for attribute in attributes:
                 nname="\nparam "+attribute.name+':='
                 contents=[]
-                #self.output_file_contenets.append("\nparam "+attribute.name+':=')
+                #self.output_file_contents.append("\nparam "+attribute.name+':=')
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
                     if attr is None or attr.value is None:
@@ -274,14 +261,14 @@ class Exporter (object):
                     if islink is True:
                         name=get_link_name_for_param(resource)
 
-                    #self.output_file_contenets.append("\n "+name+"  "+str(attr.value.values()[0][0]))
+                    #self.output_file_contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
                     contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value.values()[0][0])))
                 if len(contents)>0:
-                    self.output_file_contenets.append(nname)
+                    self.output_file_contents.append(nname)
                     for st in contents:
-                        self.output_file_contenets.append(st)
+                        self.output_file_contents.append(st)
 
-                    self.output_file_contenets.append(';\n')
+                    self.output_file_contents.append(';\n')
 
 
 
@@ -292,7 +279,6 @@ class Exporter (object):
         islink = res_type == 'LINK'
         attributes = []
         attr_names = []
-        attr_outputs = []
         attrb_tables={}
         for resource in resources:
             for attr in resource.attributes:
@@ -325,13 +311,13 @@ class Exporter (object):
                                          'timestamps' : soap_times})
 
             for attribute in attributes:
-                self.output_file_contenets.append("\nparam "+attribute.name+"_"+obj_type+":\n")
-                self.output_file_contenets.append(self.write_time())
+                self.output_file_contents.append("\nparam "+attribute.name+"_"+obj_type+":\n")
+                self.output_file_contents.append(self.write_time())
                 for resource in resources:
                     name=resource.name
                     if islink is True:
                         name=get_link_name(resource)
-                    #self.output_file_contenets.append("\n  "+name)
+                    #self.output_file_contents.append("\n  "+name)
                     nname="\n  "+name
                     contents=[]
                     for t, timestamp in enumerate(self.time_index.values()):
@@ -345,13 +331,13 @@ class Exporter (object):
                                 continue
 
                             data_str = self.ff.format(str(data))
-                            #self.output_file_contenets.append("   "+data_str)
+                            #self.output_file_contents.append("   "+data_str)
                             contents.append(data_str)
                     if len(contents)>0:
-                        self.output_file_contenets.append(self.ff.format(nname))
+                        self.output_file_contents.append(self.ff.format(nname))
                         for st in contents:
-                            self.output_file_contenets.append(st)
-                self.output_file_contenets.append(';\n')
+                            self.output_file_contents.append(st)
+                self.output_file_contents.append(';\n')
 
     def export_timeseries_using_attributes(self, resources, res_type=None):
         """
@@ -360,7 +346,6 @@ class Exporter (object):
         islink = res_type == 'LINK'
         attributes = []
         attr_names = []
-        attr_outputs = []
         attrb_tables={}
         for resource in resources:
             for attr in resource.attributes:
@@ -393,13 +378,13 @@ class Exporter (object):
                                          'timestamps' : soap_times})
 
             for attribute in attributes:
-                self.output_file_contenets.append("\nparam "+attribute.name+":\n")
-                self.output_file_contenets.append(self.write_time())
+                self.output_file_contents.append("\nparam "+attribute.name+":\n")
+                self.output_file_contents.append(self.write_time())
                 for resource in resources:
                     name=resource.name
                     if islink is True:
                         name=get_link_name(resource)
-                    #self.output_file_contenets.append("\n  "+name)
+                    #self.output_file_contents.append("\n  "+name)
                     nname="\n  "+name;
                     contents=[]
                     for t, timestamp in enumerate(self.time_index.values()):
@@ -413,13 +398,13 @@ class Exporter (object):
                                 continue
 
                             data_str =self.ff.format(str(data))
-                            #self.output_file_contenets.append("   "+data_str)
+                            #self.output_file_contents.append("   "+data_str)
                             contents.append(data_str)
                     if len(contents)>0:
-                        self.output_file_contenets.append(self.ff.format(nname))
+                        self.output_file_contents.append(self.ff.format(nname))
                         for st in contents:
-                            self.output_file_contenets.append(st)
-                self.output_file_contenets.append(';\n')
+                            self.output_file_contents.append(st)
+                self.output_file_contents.append(';\n')
 
 
     def write_time(self):
@@ -432,8 +417,6 @@ class Exporter (object):
     def write_time_index(self, start_time=None, end_time=None, time_step=None,
                          time_axis=None):
         log.info("Writing time index")
-
-        time_index = ['SETS\n\n', '* Time index\n','t time index /\n']
 
         if time_axis is None:
             start_date =datetime.strptime(start_time, guess_timefmt(start_time))
