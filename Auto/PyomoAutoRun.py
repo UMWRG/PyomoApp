@@ -222,6 +222,7 @@ def check_args(args):
     except (TypeError, ValueError):
         raise HydraPluginError('No senario is specified')
 
+    log.info("Checking model file: %s"%args.model_file)
     if args.model_file is None:
         raise HydraPluginError('Model file is not specifed')
     elif os.path.isfile(args.model_file)==False:
