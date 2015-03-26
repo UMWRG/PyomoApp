@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 
 class Exporter (object):
 
-    def __init__(self, steps, output_file, url=None, session_id=None):
+    def __init__(self, steps, output_file, link_export_flag,  url=None, session_id=None):
         self.steps=steps
         write_progress(1, self.steps)
         self.connection = JsonConnection(url)
@@ -51,6 +51,11 @@ class Exporter (object):
             self.connection.session_id=session_id
         else:
             self.connection.login()
+
+        if link_export_flag == 'l':
+            self.links_as_name = True
+        else:
+            self.links_as_name = False
 
 
     def export_network (self, network_id, scenario_id, template_id, export_by_type=False):
@@ -128,7 +133,11 @@ class Exporter (object):
     def write_links(self, nodes_map):
         self.output_file_contents.append("\n\nset  links:= ")
         for link in self.network.links:
-            self.output_file_contents.append("\n"+ link.from_node+" "+link.to_node)
+             if self.links_as_name is False:
+                 self.output_file_contents.append("\n"+ link.from_node+" "+link.to_node)
+             else:
+                self.output_file_contents.append("\n"+ link.name)
+
         self.output_file_contents.append(';\n')
 
     def export_node_groups(self):
@@ -159,7 +168,10 @@ class Exporter (object):
             for link_type in links_types:
                 self.output_file_contents.append("\nset  "+link_type+":= \n")
                 for link in self.network.get_link(link_type=link_type):
-                    self.output_file_contents.append("\n"+ link.from_node+" "+link.to_node)
+                     if self.links_as_name is False:
+                         self.output_file_contents.append("\n"+ link.from_node+" "+link.to_node)
+                     else:
+                         self.output_file_contents.append("\n"+ link.name)
                 self.output_file_contents.append(';\n')
 
     def export_data_using_types(self, nodes_types, links_types):
@@ -219,7 +231,7 @@ class Exporter (object):
                         continue
 
                     name=resource.name
-                    if islink is True:
+                    if islink is True and self.links_as_name is False:
                         name=get_link_name_for_param(resource)
 
                     #self.output_file_contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
@@ -258,8 +270,8 @@ class Exporter (object):
                         continue
 
                     name=resource.name
-                    if islink is True:
-                        name=get_link_name_for_param(resource)
+                    if islink is True and self.links_as_name is False:
+                            name=get_link_name_for_param(resource)
 
                     #self.output_file_contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
                     contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value.values()[0][0])))
@@ -315,7 +327,7 @@ class Exporter (object):
                 self.output_file_contents.append(self.write_time())
                 for resource in resources:
                     name=resource.name
-                    if islink is True:
+                    if islink is True and self.links_as_name is False:
                         name=get_link_name(resource)
                     #self.output_file_contents.append("\n  "+name)
                     nname="\n  "+name
@@ -382,7 +394,7 @@ class Exporter (object):
                 self.output_file_contents.append(self.write_time())
                 for resource in resources:
                     name=resource.name
-                    if islink is True:
+                    if islink is True and self.links_as_name is False:
                         name=get_link_name(resource)
                     #self.output_file_contents.append("\n  "+name)
                     nname="\n  "+name;

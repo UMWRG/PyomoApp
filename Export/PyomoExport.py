@@ -128,7 +128,7 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    exporter=Exporter(steps, args.output, args.server_url, args.session_id)
+    exporter=Exporter(steps, args.output, link_export_flag, args.server_url, args.session_id)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.write_time_index(start_time=args.start_date,
@@ -199,6 +199,10 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
                         attempted based on details in config.''')
     parser.add_argument('-et', '--export_by_type', action='store_true',
                         help='''Use this switch to export data based on types. Default behaviour is to export by attribute.''')
+    parser.add_argument('-ln', '--link-name', action='store_true',
+                        help="""Export links as link name only. If two nodes
+                        can be connected by more than one link, you should
+                        choose this option.""")
     return parser
 
 if __name__ == '__main__':
@@ -209,6 +213,9 @@ if __name__ == '__main__':
         check_args(args)
         netword_id=convert_to_int(args.network, "Network Id")
         scenario_id=convert_to_int(args.scenario, "scenario Id")
+        link_export_flag = 'nn'
+        if args.link_name is True:
+            link_export_flag = 'l'
         network=export_data(args)
         #write_progress(4, steps)
         message="Run successfully"
