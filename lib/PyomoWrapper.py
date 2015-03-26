@@ -60,9 +60,15 @@ def get_values(instance, var_, list_, units):
     return list_
 
 def run_model(filename, modelfile):
+    #Convert truncated file names, containing a "~1" into the full path
+    if os.name == 'nt':
+        import win32file
+        modelfile = win32file.GetLongPathName(modelfile)
+        
     mname=os.path.dirname(modelfile)
     sys.path.append(mname)
     log.info("Importing the model from %s ", modelfile)
+
     mm=importlib.import_module(os.path.basename(modelfile).split('.')[0])
     log.info("Importing the model %s", os.path.basename(modelfile).split('.')[0])
     run_model=getattr(mm, 'run_model')
