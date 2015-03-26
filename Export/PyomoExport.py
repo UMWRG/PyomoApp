@@ -124,7 +124,6 @@ import logging
 log = logging.getLogger(__name__)
 
 def export_data(args):
-    import pudb; pudb.set_trace()
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
