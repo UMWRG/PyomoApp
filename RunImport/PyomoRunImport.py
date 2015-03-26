@@ -168,10 +168,12 @@ if __name__ == '__main__':
         message="Run successfully"
         print PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], message=message)
     except HydraPluginError, e:
+        write_progress(steps, steps)
         log.exception(e)
         err = PluginLib.create_xml_response('PyomoRumImporter', args.network, [args.scenario], errors = [e.message])
         print err
     except Exception as e:
+        write_progress(steps, steps)
         log.exception(e)
         errors = []
         if e.message == '':

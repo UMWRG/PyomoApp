@@ -248,15 +248,16 @@ if __name__ == '__main__':
         vars, objs=run_model(args.output, args.model_file)
         actual_time_steps=read_inputData(args.output)
         import_result(args, vars, objs, actual_time_steps)
-        write_progress(8, steps)
         message="Run successfully"
         print PluginLib.create_xml_response('PyomoAuto', args.network, [args.scenario], message=message)
 
     except HydraPluginError, e:
+        write_progress(steps, steps)
         log.exception(e)
         err = PluginLib.create_xml_response('PyomoAuto', args.network, [args.scenario], errors = [e.message])
         print err
     except Exception as e:
+        write_progress(steps, steps)
         errors = []
         if e.message == '':
             if hasattr(e, 'strerror'):

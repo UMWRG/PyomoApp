@@ -119,6 +119,7 @@ from PyomoAppLib import convert_to_int
 from PyomoExporter import Exporter
 from HydraLib import PluginLib
 import argparse as ap
+from HydraLib.PluginLib import write_progress
 
 import logging
 log = logging.getLogger(__name__)
@@ -217,6 +218,7 @@ if __name__ == '__main__':
         traceback.print_exc(file=sys.stderr)
         log.exception(e)
         err = PluginLib.create_xml_response('PyomoExporter', args.network, [args.scenario], errors = [e.message])
+        write_progress(steps, steps)
         print err
     except Exception as e:
         errors = []
@@ -228,5 +230,6 @@ if __name__ == '__main__':
 
         log.exception(e)
         err = PluginLib.create_xml_response('PyomoExporter', args.network, [args.scenario], errors = [e.message])
+        write_progress(steps, steps)
         print err
 
