@@ -29,6 +29,8 @@ from PyomoAppLib import get_link_name
 from PyomoAppLib import get_link_name_for_param
 from PyomoAppLib import translate_attr_name
 from HydraLib.PluginLib import write_progress
+from HydraLib.HydraException import HydraPluginError
+
 import json
 import logging
 log = logging.getLogger(__name__)
@@ -428,26 +430,29 @@ class Exporter (object):
 
     def write_time_index(self, start_time=None, end_time=None, time_step=None,
                          time_axis=None):
-        log.info("Writing time index")
+        try:
+            log.info("Writing time index")
 
-        if time_axis is None:
-            start_date =datetime.strptime(start_time, guess_timefmt(start_time))
-            end_date =datetime.strptime(end_time, guess_timefmt(end_time))
+            if time_axis is None:
+                start_date =datetime.strptime(start_time, guess_timefmt(start_time))
+                end_date =datetime.strptime(end_time, guess_timefmt(end_time))
 
-            delta_t = self.parse_time_step(time_step)
+                delta_t = self.parse_time_step(time_step)
 
-            t = 1
-            while start_date < end_date:
-                self.time_index[t]=start_date
-                start_date += timedelta(delta_t)
-                t += 1
-        else:
-            time_axis = ' '.join(time_axis).split(',')
-            t = 1
-            for timestamp in time_axis:
-                date = end_date =datetime.strptime(timestamp.strip(), guess_timefmt(timestamp.strip()))
-                self.time_index[t]=date
-                t += 1
+                t = 1
+                while start_date < end_date:
+                    self.time_index[t]=start_date
+                    start_date += timedelta(delta_t)
+                    t += 1
+            else:
+                time_axis = ' '.join(time_axis).split(',')
+                t = 1
+                for timestamp in time_axis:
+                    date = end_date =datetime.strptime(timestamp.strip(), guess_timefmt(timestamp.strip()))
+                    self.time_index[t]=date
+                    t += 1
+        except Exception as e:
+            raise HydraPluginError("Please check time-axis or start time, end times and time step.")
 
     def parse_time_step(self, time_step):
         """Read in the time step and convert it to days.
