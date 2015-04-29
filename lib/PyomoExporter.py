@@ -21,6 +21,7 @@ import re
 
 from datetime import datetime
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 
 from HydraLib.PluginLib import JsonConnection
 from HydraLib.dateutil import guess_timefmt, date_to_string
@@ -437,12 +438,16 @@ class Exporter (object):
                 start_date =datetime.strptime(start_time, guess_timefmt(start_time))
                 end_date =datetime.strptime(end_time, guess_timefmt(end_time))
 
-                delta_t = self.parse_time_step(time_step)
+                delta_t, value, units = self.parse_time_step(time_step)
 
                 t = 1
-                while start_date < end_date:
+                while start_date <= end_date:
                     self.time_index[t]=start_date
-                    start_date += timedelta(delta_t)
+                    if(units== "mon"):
+                        start_date=start_date+relativedelta(months=value)
+                    else:
+                        start_date += timedelta(delta_t)
+
                     t += 1
             else:
                 time_axis = ' '.join(time_axis).split(',')
@@ -464,7 +469,7 @@ class Exporter (object):
         units = time_step[valuelen:].strip()
         converted_time_step = self.connection.call('convert_units', {
             'values':[value], 'unit1':units, 'unit2':'day'})[0]
-        return float(converted_time_step)
+        return float(converted_time_step), value, units
 
 
 
