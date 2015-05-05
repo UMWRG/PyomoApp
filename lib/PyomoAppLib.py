@@ -216,3 +216,16 @@ class ModelVarable:
 
     def add_data(self, data):
         self.data_set.append(data)
+
+def arr_to_matrix(arr, dim):
+    """
+    Reshape a multidimensional array to a 2 dimensional matrix.
+    """
+    tmp_arr = []
+    for n in range(len(dim) - 2):
+        for inner in arr:
+            for i in inner:
+                tmp_arr.append(i)
+        arr = tmp_arr
+        tmp_arr = []
+    return arr

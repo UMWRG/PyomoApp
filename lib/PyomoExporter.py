@@ -22,13 +22,16 @@ import re
 from datetime import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
+from string import ascii_lowercase
 
 from HydraLib.PluginLib import JsonConnection
 from HydraLib.dateutil import guess_timefmt, date_to_string
 from HydraLib.PluginLib import HydraNetwork
+from HydraLib.util import array_dim, parse_array
 from PyomoAppLib import get_link_name
 from PyomoAppLib import get_link_name_for_param
 from PyomoAppLib import translate_attr_name
+from PyomoAppLib import arr_to_matrix
 from HydraLib.PluginLib import write_progress
 from HydraLib.HydraException import HydraPluginError
 
@@ -119,6 +122,7 @@ class Exporter (object):
                 node_name_len=len(node.name)
 
         self.ff='{0:<'+str(2*node_name_len+5)+'}'
+        self.ff__=2*node_name_len+5
 
     def save_file(self):
         write_progress(8, self.steps)
@@ -185,12 +189,14 @@ class Exporter (object):
             self.export_parameters_using_types(nodes, node_type, 'scalar')
             self.export_parameters_using_types(nodes, node_type, 'descriptor')
             self.export_timeseries_using_types(nodes, node_type)
+            self.export_arrays(nodes)
 
         for link_type in links_types:
             links = self.network.get_link(link_type=link_type)
             self.export_parameters_using_types(links, link_type, 'scalar', res_type='LINK')
             self.export_parameters_using_types(links, link_type,'descriptor', res_type='LINK')
             self.export_timeseries_using_types(links, link_type, res_type='LINK')
+            self.export_arrays(links)
         #
     def export_data_using_attributes (self):
         log.info("Exporting data")
@@ -200,12 +206,14 @@ class Exporter (object):
         self.export_parameters_using_attributes(self.network.nodes, 'scalar')
         self.export_parameters_using_attributes(self.network.nodes,  'descriptor')
         self.export_timeseries_using_attributes(self.network.nodes)
+        self.export_arrays(self.network.nodes)
 
         #for link_type in links_types:
         #links = self.network.get_link(link_type=link_type)
         self.export_parameters_using_attributes(self.network.links, 'scalar', res_type='LINK')
         self.export_parameters_using_attributes(self.network.links, 'descriptor', res_type='LINK')
         self.export_timeseries_using_attributes(self.network.links,  res_type='LINK')
+        self.export_arrays(self.network.links)
         #
     def export_parameters_using_types(self, resources, obj_type, datatype, res_type=None):
         """Export scalars or descriptors.
@@ -341,11 +349,13 @@ class Exporter (object):
                             #Get the value at this time in the given timestamp
                             soap_time = date_to_string(timestamp)
                             data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
-
                             if data is None:
                                 continue
-
-                            data_str = self.ff.format(str(data))
+                            if(type(data) is list):
+                                ff_='{0:<'+str(self.ff__+len(data)+5)+'}'
+                                data_str = ff_.format(str(data))
+                            else:
+                                data_str = self.ff.format(str(data))
                             #self.output_file_contents.append("   "+data_str)
                             contents.append(data_str)
                     if len(contents)>0:
@@ -437,17 +447,19 @@ class Exporter (object):
             if time_axis is None:
                 start_date =datetime.strptime(start_time, guess_timefmt(start_time))
                 end_date =datetime.strptime(end_time, guess_timefmt(end_time))
-
                 delta_t, value, units = self.parse_time_step(time_step)
 
                 t = 1
+                value=int(value)
+
                 while start_date <= end_date:
                     self.time_index[t]=start_date
-                    if(units== "mon"):
+                    if(units.lower()== "mon"):
                         start_date=start_date+relativedelta(months=value)
+                    elif (units.lower()== "yr"):
+                        start_date=start_date+relativedelta(years=value)
                     else:
                         start_date += timedelta(delta_t)
-
                     t += 1
             else:
                 time_axis = ' '.join(time_axis).split(',')
@@ -470,6 +482,72 @@ class Exporter (object):
         converted_time_step = self.connection.call('convert_units', {
             'values':[value], 'unit1':units, 'unit2':'day'})[0]
         return float(converted_time_step), value, units
+
+
+    def export_arrays(self, resources):
+            """Export arrays.
+            """
+            attributes = []
+            attr_names = []
+
+            for resource in resources:
+                for attr in resource.attributes:
+                    if attr.dataset_type == 'array' and attr.is_var is False:
+                        attr.name = translate_attr_name(attr.name)
+                        if attr.name not in attr_names:
+                            attributes.append(attr)
+                            attr_names.append(attr.name)
+            if len(attributes) > 0:
+                # We have to write the complete array information for every single
+                # node, because they might have different sizes.
+                for resource in resources:
+                    # This exporter only supports 'rectangular' arrays
+                    for attribute in attributes:
+                        attr = resource.get_attribute(attr_name=attribute.name)
+                        if attr is not None and attr.value is not None:
+                            array_dict = attr.value['arr_data'][0]
+                            array = parse_array(array_dict)
+                            dim = array_dim(array)
+                            self.output_file_contents.append('* Array %s for node %s, ' % \
+                                (attr.name, resource.name))
+                            self.output_file_contents.append('dimensions are %s\n\n' % dim)
+                            # Generate array indices
+                            self.output_file_contents.append('SETS\n\n')
+                            indexvars = list(ascii_lowercase)
+                            for i, n in enumerate(dim):
+                                self.output_file_contents.append(indexvars[i] + '_' + \
+                                    resource.name + '_' + attr.name + \
+                                    ' array index /\n')
+                                for idx in range(n):
+                                    self.output_file_contents.append(str(idx) + '\n')
+                                self.output_file_contents.append('/\n\n')
+
+                            self.output_file_contents.append('Table ' + resource.name + '_' + \
+                                attr.name + '(')
+                            for i, n in enumerate(dim):
+                                self.output_file_contents.append(indexvars[i] + '_' + resource.name \
+                                    + '_' + attr.name)
+                                if i < (len(dim) - 1):
+                                    self.output_file_contents.append(',')
+                            self.output_file_contents.append(') \n\n')
+                            ydim = dim[-1]
+                            #attr_outputs.append(' '.join(['{0:10}'.format(y)
+                            #                        for y in range(ydim)])
+                            for y in range(ydim):
+                                self.output_file_contents.append('{0:20}'.format(y))
+                            self.output_file_contents.append('\n')
+                            #arr_index = create_arr_index(dim[0:-1])
+                            matr_array =arr_to_matrix (array, dim)
+                            #for i, idx in enumearr_to_matrixrate(arr_index):
+                             #   print i, idx
+                              #  for n in range(ydim):
+                               #     print n
+                                #    attr_outputs.append('{0:<10}'.format(
+                                 #       ' . '.join([str(k) for k in idx])))
+                            for item in matr_array:
+                                self.output_file_contents.append('{0:20}'.format(item))
+                            self.output_file_contents.append('\n')
+                            self.output_file_contents.append('\n\n')
 
 
 
