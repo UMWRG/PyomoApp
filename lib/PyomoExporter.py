@@ -512,17 +512,16 @@ class Exporter (object):
                                 (attr.name, resource.name))
                             self.output_file_contents.append('dimensions are %s\n\n' % dim)
                             # Generate array indices
-                            self.output_file_contents.append('SETS\n\n')
+                            self.output_file_contents.append('set ')
                             indexvars = list(ascii_lowercase)
                             for i, n in enumerate(dim):
                                 self.output_file_contents.append(indexvars[i] + '_' + \
-                                    resource.name + '_' + attr.name + \
-                                    ' array index /\n')
+                                    resource.name + '_' + attr.name + ':= \n')
                                 for idx in range(n):
                                     self.output_file_contents.append(str(idx) + '\n')
-                                self.output_file_contents.append('/\n\n')
+                                self.output_file_contents.append(';\n\n')
 
-                            self.output_file_contents.append('Table ' + resource.name + '_' + \
+                            self.output_file_contents.append('param ' + resource.name + '_' + \
                                 attr.name + '(')
                             for i, n in enumerate(dim):
                                 self.output_file_contents.append(indexvars[i] + '_' + resource.name \
@@ -546,7 +545,7 @@ class Exporter (object):
                                  #       ' . '.join([str(k) for k in idx])))
                             for item in matr_array:
                                 self.output_file_contents.append('{0:20}'.format(item))
-                            self.output_file_contents.append('\n')
+                            self.output_file_contents.append(';\n')
                             self.output_file_contents.append('\n\n')
 
 
