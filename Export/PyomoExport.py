@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License\
 # along with PyomoExport.  If not, see <http://www.gnu.org/licenses/>\
 #
+#-t 40 -s 40 -st 2015-04-01 -en 2039-04-01 -dt "1 mon" -o "c:\temp\arrat.txt"
 
 __author__ = 'K. Mohamed'
 '''

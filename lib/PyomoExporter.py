@@ -246,7 +246,7 @@ class Exporter (object):
                         name=get_link_name_for_param(resource)
 
                     #self.output_file_contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
-                    contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value.values()[0][0])))
+                    contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value)))
                 if len(contents)>0:
                     self.output_file_contents.append(nname)
                     for st in contents:
@@ -285,7 +285,7 @@ class Exporter (object):
                             name=get_link_name_for_param(resource)
 
                     #self.output_file_contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
-                    contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value.values()[0][0])))
+                    contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value)))
                 if len(contents)>0:
                     self.output_file_contents.append(nname)
                     for st in contents:
@@ -313,14 +313,18 @@ class Exporter (object):
                         attr_names.append(attr.name)
 
         if len(attributes) > 0:
-            dataset_ids = []
+            #dataset_ids = []
+            all_res_data={}
 
             #Identify the datasets that we need data for
             for attribute in attributes:
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
                     if attr is not None and attr.dataset_id is not None:
-                        dataset_ids.append(attr.dataset_id)
+                        #dataset_ids.append(attr.dataset_id)
+                        value=json.loads(attr.value)
+                        all_res_data[attr.dataset_id]=value
+
             
             #We need to get the value at each time in the specified time axis,
             #so we need to identify the relevant timestamps.
@@ -329,9 +333,9 @@ class Exporter (object):
                 soap_times.append(date_to_string(timestamp))
 
             #Get all the necessary data for all the datasets we have.
-            all_data = self.connection.call('get_multiple_vals_at_time',
-                                        {'dataset_ids':dataset_ids,
-                                         'timestamps' : soap_times})
+            #all_data = self.connection.call('get_multiple_vals_at_time',
+            #                            {'dataset_ids':dataset_ids,
+            #                             'timestamps' : soap_times})
 
             for attribute in attributes:
                 self.output_file_contents.append("\nparam "+attribute.name+"_"+obj_type+":\n")
@@ -348,7 +352,11 @@ class Exporter (object):
                         if attr is not None and attr.dataset_id is not None:
                             #Get the value at this time in the given timestamp
                             soap_time = date_to_string(timestamp)
-                            data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
+                            value=all_res_data[attr.dataset_id]
+                            for st, data_ in value.items():
+                                pass
+                            data=self.get_time_value(data_, soap_time)
+                            #data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
                             if data is None:
                                 continue
                             if(type(data) is list):
@@ -382,14 +390,17 @@ class Exporter (object):
                         attr_names.append(attr.name)
 
         if len(attributes) > 0:
-            dataset_ids = []
+            #dataset_ids = []
+            all_res_data={}
 
             #Identify the datasets that we need data for
             for attribute in attributes:
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
                     if attr is not None and attr.dataset_id is not None:
-                        dataset_ids.append(attr.dataset_id)
+                        #dataset_ids.append(attr.dataset_id)
+                        value=json.loads(attr.value)
+                        all_res_data[attr.dataset_id]=value
 
             #We need to get the value at each time in the specified time axis,
             #so we need to identify the relevant timestamps.
@@ -398,9 +409,9 @@ class Exporter (object):
                 soap_times.append(date_to_string(timestamp))
 
             #Get all the necessary data for all the datasets we have.
-            all_data = self.connection.call('get_multiple_vals_at_time',
-                                        {'dataset_ids':dataset_ids,
-                                         'timestamps' : soap_times})
+            #all_data = self.connection.call('get_multiple_vals_at_time',
+            #                            {'dataset_ids':dataset_ids,
+            #                             'timestamps' : soap_times})
 
             for attribute in attributes:
                 self.output_file_contents.append("\nparam "+attribute.name+":\n")
@@ -417,7 +428,11 @@ class Exporter (object):
                         if attr is not None and attr.dataset_id is not None:
                             #Get the value at this time in the given timestamp
                             soap_time = date_to_string(timestamp)
-                            data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
+                            value=all_res_data[attr.dataset_id]
+                            for st, data_ in value.items():
+                                pass
+                            data=self.get_time_value(data_, soap_time)
+                            #data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
 
                             if data is None:
                                 continue
@@ -431,7 +446,19 @@ class Exporter (object):
                             self.output_file_contents.append(st)
                 self.output_file_contents.append(';\n')
 
-
+    def get_time_value(self, value, soap_time):
+        data=None
+        for date_time, item_value in value.items():
+            print soap_time
+            print date_time,": ", item_value
+            if(date_time.startswith("XXXX")):
+                if date_time [5:] == soap_time [5:]:
+                    data=item_value
+                    break
+            elif (date_time == soap_time):
+                data=item_value
+                break
+        return data
     def write_time(self):
         time_string=self.ff.format("")
         for t in self.time_index.keys():
