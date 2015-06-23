@@ -22,6 +22,7 @@ from HydraLib.HydraException import HydraPluginError
 from HydraLib.PluginLib import JsonConnection
 
 import logging
+import json
 log = logging.getLogger(__name__)
 
 
@@ -85,28 +86,30 @@ class Importer:
     #####################################################
 
     def create_timeseries(self, data):
-        timeseries = {'ts_values': []}
+        timeseries = {'0': {}}
         counter=0
         for time_s in self.actual_time_steps:
-           # if(data[counter] is None):
-           #    data[counter]=-1
-            #print data[counter]
-            timeseries['ts_values'].append({'ts_time':
-                                            time_s,
-                                            'ts_value':
-                                            float(data[counter])
-                                            })
-            counter+=1
-        return timeseries
 
+            timeseries['0'][time_s]=float(data[counter])
+            counter+=1
+        return json.dumps(timeseries)
+    '''
+    def create_timeseries(self, data):
+        timeseries = {'0': {}}
+        index=0
+        for i, idx in enumerate(index):
+            timeseries['0'][self.time_axis[int(idx)]] = float(data[i])
+            index+=1
+        return json.dumps(timeseries)
+    '''
     def create_scalar(self, value):
-        return dict(param_value = value)
+        return json.dumps(value)
 
     def create_array(self, index, data):
         pass
 
     def create_descriptor(self, value):
-        descriptor = dict(desc_val = value)
+        descriptor = json.dumps(value)
         return descriptor
 
     def save(self):
@@ -194,6 +197,7 @@ class Importer:
                             dataset['unit'] = varModel.unit
                             if len(varModel.data_set)>1:
                                 dataset['type'] = 'timeseries'
+
                                 dataset['value'] = self.create_timeseries(varModel.data_set)
                             elif len(varModel.data_set) == 1:
                                  try:

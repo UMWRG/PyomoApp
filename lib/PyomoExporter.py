@@ -158,6 +158,7 @@ class Exporter (object):
                 node_groups.append(group)
                 self.output_file_contents.append("\nset  "+group.name+":= \n")
                 for node in group_nodes:
+                    print "GROUPS: ",group.name,node.name
                     self.output_file_contents.append(node.name+'\n')
                 self.output_file_contents.append(';\n')
 
