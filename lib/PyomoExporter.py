@@ -36,6 +36,7 @@ from HydraLib.PluginLib import write_progress
 from HydraLib.HydraException import HydraPluginError
 
 import json
+from dateutil.parser import parse
 import logging
 log = logging.getLogger(__name__)
 
@@ -183,6 +184,7 @@ class Exporter (object):
 
     def export_data_using_types(self, nodes_types, links_types):
         log.info("Exporting data")
+        self.time_table={}
         # Export node data for each node type
         for node_type in nodes_types:
             nodes = self.network.get_node(node_type=node_type)
@@ -202,6 +204,7 @@ class Exporter (object):
         log.info("Exporting data")
         # Export node data for each node type
         #for node_type in nodes_types:
+        self.time_table={}
         #nodes = self.network.get_node(node_type=node_type)
         self.export_parameters_using_attributes(self.network.nodes, 'scalar')
         self.export_parameters_using_attributes(self.network.nodes,  'descriptor')
@@ -449,16 +452,36 @@ class Exporter (object):
     def get_time_value(self, value, soap_time):
         data=None
         for date_time, item_value in value.items():
-            print soap_time
-            print date_time,": ", item_value
             if(date_time.startswith("XXXX")):
                 if date_time [5:] == soap_time [5:]:
                     data=item_value
                     break
-            elif (date_time == soap_time):
+            elif date_time==soap_time:
                 data=item_value
                 break
+            else:
+                if date_time in self.time_table:
+                    if self.time_table[date_time]== soap_time:
+                        data=item_value
+                        break
+                else:
+                    converted_time=date_to_string(parse(date_time))
+                    self.time_table[date_time]=converted_time
+                    if converted_time== soap_time:
+                        data=item_value
+                        break
+
+        if data is not None:
+            if type(data) is list:
+                new_data="["
+                for v in data:
+                    if(new_data== "["):
+                        new_data=new_data+str(v)
+                    else:
+                        new_data=new_data+" "+str(v)
+                data=new_data+"]"
         return data
+
     def write_time(self):
         time_string=self.ff.format("")
         for t in self.time_index.keys():
@@ -510,70 +533,78 @@ class Exporter (object):
             'values':[value], 'unit1':units, 'unit2':'day'})[0]
         return float(converted_time_step), value, units
 
+    def get_dim(self, arr):
+        dim = []
+        if(type(arr) is list):
+            for i in range(len(arr)):
+                if(type(arr[i]) is list):
+                    dim.append((len(arr[i])))
+                else:
+                    dim.append(len(arr))
+                    break
+        else:
+             dim.append(len(arr))
+
+        return dim
 
     def export_arrays(self, resources):
-            """Export arrays.
-            """
-            attributes = []
-            attr_names = []
-
+        """Export arrays.
+        """
+        attributes = []
+        attr_names = []
+        for resource in resources:
+            for attr in resource.attributes:
+                if attr.dataset_type == 'array' and attr.is_var is False:
+                    attr.name = translate_attr_name(attr.name)
+                    if attr.name not in attr_names:
+                        attributes.append(attr)
+                        attr_names.append(attr.name)
+        if len(attributes) > 0:
+            # We have to write the complete array information for every single
+            # node, because they might have different sizes.
             for resource in resources:
-                for attr in resource.attributes:
-                    if attr.dataset_type == 'array' and attr.is_var is False:
-                        attr.name = translate_attr_name(attr.name)
-                        if attr.name not in attr_names:
-                            attributes.append(attr)
-                            attr_names.append(attr.name)
-            if len(attributes) > 0:
-                # We have to write the complete array information for every single
-                # node, because they might have different sizes.
-                for resource in resources:
-                    # This exporter only supports 'rectangular' arrays
-                    for attribute in attributes:
-                        attr = resource.get_attribute(attr_name=attribute.name)
-                        if attr is not None and attr.value is not None:
-                            array_dict = attr.value['arr_data'][0]
-                            array = parse_array(array_dict)
-                            dim = array_dim(array)
-                            self.output_file_contents.append('* Array %s for node %s, ' % \
-                                (attr.name, resource.name))
-                            self.output_file_contents.append('dimensions are %s\n\n' % dim)
-                            # Generate array indices
-                            self.output_file_contents.append('set ')
-                            indexvars = list(ascii_lowercase)
-                            for i, n in enumerate(dim):
-                                self.output_file_contents.append(indexvars[i] + '_' + \
-                                    resource.name + '_' + attr.name + ':= \n')
-                                for idx in range(n):
-                                    self.output_file_contents.append(str(idx) + '\n')
-                                self.output_file_contents.append(';\n\n')
+                # This exporter only supports 'rectangular' arrays
+                for attribute in attributes:
+                    attr = resource.get_attribute(attr_name=attribute.name)
+                    if attr is not None and attr.value is not None:
+                        array=json.loads(attr.value)
+                        dim = self.get_dim(array)
+                        self.output_file_contents.append('# Array %s for node %s, ' % \
+                            (attr.name, resource.name))
+                        self.output_file_contents.append('dimensions are %s\n\n' % dim)
+                        # Generate array indices
+                        self.output_file_contents.append('SETS:=\n\n')
+                        indexvars = list(ascii_lowercase)
+                        for i, n in enumerate(dim):
+                            self.output_file_contents.append(indexvars[i] + '_' + \
+                                resource.name + '_' + attr.name + \
+                                ' array_'+str(i)+':=\n')
+                            for idx in range(n):
+                                self.output_file_contents.append(str(idx) + '\n')
+                            self.output_file_contents.append(';\n\n')
 
-                            self.output_file_contents.append('param ' + resource.name + '_' + \
-                                attr.name + '(')
-                            for i, n in enumerate(dim):
-                                self.output_file_contents.append(indexvars[i] + '_' + resource.name \
-                                    + '_' + attr.name)
-                                if i < (len(dim) - 1):
-                                    self.output_file_contents.append(',')
-                            self.output_file_contents.append(') \n\n')
-                            ydim = dim[-1]
-                            #attr_outputs.append(' '.join(['{0:10}'.format(y)
-                            #                        for y in range(ydim)])
+                        self.output_file_contents.append('param ' + resource.name + '_' + \
+                            attr.name + ':=')
+
+                        ydim = dim[-1]
+
+                        if len(dim)>1:
                             for y in range(ydim):
                                 self.output_file_contents.append('{0:20}'.format(y))
                             self.output_file_contents.append('\n')
-                            #arr_index = create_arr_index(dim[0:-1])
-                            matr_array =arr_to_matrix (array, dim)
-                            #for i, idx in enumearr_to_matrixrate(arr_index):
-                             #   print i, idx
-                              #  for n in range(ydim):
-                               #     print n
-                                #    attr_outputs.append('{0:<10}'.format(
-                                 #       ' . '.join([str(k) for k in idx])))
-                            for item in matr_array:
+
+                        i=0
+                        for item in array:
+                            self.output_file_contents.append("\n")
+                            self.output_file_contents.append('{0:20}'.format(""))
+                            i+=1
+                            if(type(item) is list):
+                                for value in item:
+                                    self.output_file_contents.append('{0:20}'.format(value))
+                            else:
                                 self.output_file_contents.append('{0:20}'.format(item))
-                            self.output_file_contents.append(';\n')
-                            self.output_file_contents.append('\n\n')
+                        self.output_file_contents.append(';\n')
+                        self.output_file_contents.append('\n\n')
 
 
 
