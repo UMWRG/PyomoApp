@@ -362,7 +362,7 @@ class Exporter (object):
                             data=self.get_time_value(data_, soap_time)
                             #data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
                             if data is None:
-                                continue
+                                raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
                             if(type(data) is list):
                                 ff_='{0:<'+str(self.ff__+len(data)+5)+'}'
                                 data_str = ff_.format(str(data))
@@ -439,7 +439,7 @@ class Exporter (object):
                             #data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
 
                             if data is None:
-                                continue
+                                raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
 
                             data_str =self.ff.format(str(data))
                             #self.output_file_contents.append("   "+data_str)
@@ -452,6 +452,7 @@ class Exporter (object):
 
     def get_time_value(self, value, soap_time):
         data=None
+        self.set_time_table(value.keys())
         for date_time, item_value in value.items():
             if(date_time.startswith("XXXX")):
                 if date_time [5:] == soap_time [5:]:
@@ -461,17 +462,15 @@ class Exporter (object):
                 data=item_value
                 break
             else:
-                if date_time in self.time_table:
-                    if self.time_table[date_time]== soap_time:
-                        data=item_value
-                        break
+                if self.time_table[date_time]== soap_time:
+                     data=item_value
+                     break
                 else:
-                    converted_time=date_to_string(parse(date_time))
-                    self.time_table[date_time]=converted_time
-                    if converted_time== soap_time:
-                        data=item_value
-                        break
-
+                    pass
+        if data is None:
+            date=self.check_time( soap_time, sorted(value.keys()))
+            if date is not None:
+                data= value[date]
         if data is not None:
             if type(data) is list:
                 new_data="["
@@ -481,7 +480,41 @@ class Exporter (object):
                     else:
                         new_data=new_data+" "+str(v)
                 data=new_data+"]"
+
         return data
+
+
+    def check_time(self, timestamp, times):
+        for i in range (0, len(times)):
+            if(i==0):
+                if(timestamp<self.time_table[times[0]]):
+                     return None
+            if(timestamp<self.time_table[times[i]]):
+                if(i>0 and timestamp>self.time_table[times[i-1]]):
+                    return times[i-1]
+        return self.get_last_valid_occurrence(timestamp, times)
+        return None
+
+    def get_last_valid_occurrence(self, timestamp, times):
+        for date_time in times:
+            if self.time_table[date_time] [5:] == timestamp [5:]:
+                return date_time
+            else:
+                time=timestamp [:5]+self.time_table[date_time] [5:]
+                re_time=self.check_time(time,times)
+                if(re_time is not None):
+                    return re_time
+        return None
+
+    def set_time_table(self, times):
+         for date_time in times:
+             if  date_time in self.time_table:
+                 pass
+             else:
+                 if date_time.startswith("XXXX"):
+                     self.time_table[date_time]=date_to_string(parse(date_time.replace("XXXX","1900")))
+                 else:
+                     self.time_table[date_time]=date_to_string(parse(date_time))
 
     def write_time(self):
         time_string=self.ff.format("")
