@@ -25,7 +25,7 @@ from dateutil.relativedelta import relativedelta
 from string import ascii_lowercase
 
 from HydraLib.PluginLib import JsonConnection
-from HydraLib.dateutil import guess_timefmt, date_to_string
+from HydraLib.hydra_dateutil import guess_timefmt, date_to_string
 from HydraLib.PluginLib import HydraNetwork
 from HydraLib.util import array_dim, parse_array
 from PyomoAppLib import get_link_name
@@ -158,7 +158,6 @@ class Exporter (object):
                 node_groups.append(group)
                 self.output_file_contents.append("\nset  "+group.name+":= \n")
                 for node in group_nodes:
-                    print "GROUPS: ",group.name,node.name
                     self.output_file_contents.append(node.name+'\n')
                 self.output_file_contents.append(';\n')
 
@@ -317,7 +316,7 @@ class Exporter (object):
                         attr_names.append(attr.name)
 
         if len(attributes) > 0:
-            #dataset_ids = []
+            dataset_ids = []
             all_res_data={}
 
             #Identify the datasets that we need data for
@@ -325,7 +324,7 @@ class Exporter (object):
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
                     if attr is not None and attr.dataset_id is not None:
-                        #dataset_ids.append(attr.dataset_id)
+                        dataset_ids.append(attr.dataset_id)
                         value=json.loads(attr.value)
                         all_res_data[attr.dataset_id]=value
 
@@ -340,6 +339,7 @@ class Exporter (object):
             #all_data = self.connection.call('get_multiple_vals_at_time',
             #                            {'dataset_ids':dataset_ids,
             #                             'timestamps' : soap_times})
+
 
             for attribute in attributes:
                 self.output_file_contents.append("\nparam "+attribute.name+"_"+obj_type+":\n")
@@ -394,7 +394,7 @@ class Exporter (object):
                         attr_names.append(attr.name)
 
         if len(attributes) > 0:
-            #dataset_ids = []
+            dataset_ids = []
             all_res_data={}
 
             #Identify the datasets that we need data for
@@ -402,7 +402,7 @@ class Exporter (object):
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
                     if attr is not None and attr.dataset_id is not None:
-                        #dataset_ids.append(attr.dataset_id)
+                        dataset_ids.append(attr.dataset_id)
                         value=json.loads(attr.value)
                         all_res_data[attr.dataset_id]=value
 
@@ -416,6 +416,7 @@ class Exporter (object):
             #all_data = self.connection.call('get_multiple_vals_at_time',
             #                            {'dataset_ids':dataset_ids,
             #                             'timestamps' : soap_times})
+
 
             for attribute in attributes:
                 self.output_file_contents.append("\nparam "+attribute.name+":\n")
@@ -436,8 +437,16 @@ class Exporter (object):
                             for st, data_ in value.items():
                                 pass
                             data=self.get_time_value(data_, soap_time)
-                            #data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
-
+                            #data_2 = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
+                            '''
+                            if( str(data).strip() !=str(data_2).strip()):
+                                print "Error detected =========================================================="
+                                print "data: ", data
+                                print "data_2: ", data_2
+                                print soap_time
+                                print data_
+                                raise HydraPluginError("Dataset %s data for time %s is eror"%(attr.dataset_id, soap_time))
+                            '''
                             if data is None:
                                 raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
 
@@ -500,7 +509,7 @@ class Exporter (object):
             if self.time_table[date_time] [5:] == timestamp [5:]:
                 return date_time
             else:
-                time=timestamp [:5]+self.time_table[date_time] [5:]
+                time=self.time_table[date_time][:5]+timestamp  [5:]
                 re_time=self.check_time(time,times)
                 if(re_time is not None):
                     return re_time

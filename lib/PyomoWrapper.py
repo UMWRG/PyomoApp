@@ -51,7 +51,7 @@ def get_values(instance, var_, list_, units):
                 if var_ in units.keys():
                     unit=units[var_]
                 else:
-                    unit="unit_less"
+                    unit=None
                 varmodel=ModelVarable(var_, owner, desc, unit)
                 list_.append(varmodel)
             varmodel.add_data(value_)
@@ -127,7 +127,7 @@ def get_obj_value(result, var_, list_, units):
         if var_ in units.keys():
             unit=units[var_]
         else:
-            unit="unit_less"
+            unit=None
         varmodel=ModelVarable(var_, 'Network', desc, unit)
         list_.append(varmodel)
     varmodel.add_data(value_)

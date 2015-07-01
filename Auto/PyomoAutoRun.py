@@ -163,7 +163,6 @@ def import_result(args, vars, objs, actual_time_steps):
     write_progress(12, steps)
     imp.save()
 
-
 def commandline_parser():
     parser = ap.ArgumentParser(
         description="""Export a network and a scenrio to a file, which can be imported into a Pyomo model.

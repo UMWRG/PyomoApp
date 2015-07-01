@@ -90,7 +90,7 @@ class Importer:
         counter=0
         for time_s in self.actual_time_steps:
 
-            timeseries['0'][time_s]=float(data[counter])
+            timeseries['0'][time_s]=json.dumps(data[counter])
             counter+=1
         return json.dumps(timeseries)
     '''
@@ -151,10 +151,14 @@ class Importer:
                                             dataset['type'] = 'descriptor'
                                             dataset['value'] = self.create_descriptor(varModel.data_set [0])
                                     #print "link attr is added"
+                                    metadata={}
+                                    dataset['metadata']=json.dumps(metadata)
+                                    dataset['dimension']=attr.resourcescenario.value.dimension
                                     res_scen = dict(resource_attr_id = attr.id,
                                                                     attr_id = attr.attr_id,
                                                                     value = dataset)
                                     self.res_scenario.append(res_scen) #dataset
+
 
                 for node in self.network.nodes:
                     if node.name in varModel.owner and len(varModel.owner)==1:
@@ -180,6 +184,9 @@ class Importer:
                                     #print "node att is added"
                                     '''
                                     '''
+                                    metadata={}
+                                    dataset['metadata']=json.dumps(metadata)
+                                    dataset['dimension']=attr.resourcescenario.value.dimension
                                     res_scen = dict(resource_attr_id = attr.id,
                                                     attr_id = attr.attr_id,
                                                     value = dataset)
@@ -213,5 +220,8 @@ class Importer:
                             res_scen = dict(resource_attr_id = attr.id,
                                             attr_id = attr.attr_id,
                                             value = dataset)
+                            metadata={}
+                            dataset['metadata']=json.dumps(metadata)
+                            dataset['dimension']=attr.resourcescenario.value.dimension
                             self.res_scenario.append(res_scen)
                             # "Network Attr is added ...."
