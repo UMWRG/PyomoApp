@@ -241,7 +241,7 @@ class Exporter (object):
                 #self.output_file_contents.append("\nparam "+attribute.name+':=')
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
-                    if attr is None or attr.value is None:
+                    if attr is None or attr.value is None or  attr.dataset_type != datatype:
                         continue
 
                     name=resource.name
@@ -280,7 +280,7 @@ class Exporter (object):
                 #self.output_file_contents.append("\nparam "+attribute.name+':=')
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
-                    if attr is None or attr.value is None:
+                    if attr is None or attr.value is None or  attr.dataset_type != datatype:
                         continue
 
                     name=resource.name
@@ -353,16 +353,23 @@ class Exporter (object):
                     contents=[]
                     for t, timestamp in enumerate(self.time_index.values()):
                         attr = resource.get_attribute(attr_name=attribute.name)
-                        if attr is not None and attr.dataset_id is not None:
+                        if attr is not None and attr.dataset_id is not None and attr.dataset_type == 'timeseries':
                             #Get the value at this time in the given timestamp
                             soap_time = date_to_string(timestamp)
                             value=all_res_data[attr.dataset_id]
                             for st, data_ in value.items():
-                                pass
-                            data=self.get_time_value(data_, soap_time)
+                                tmp=str(self.get_time_value(data_, soap_time))
+                                if tmp is None or tmp=="None":
+                                     raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
+                                if(data is not None):
+                                    data=data+"-"+tmp
+                                else:
+                                    data=tmp
+
+
                             #data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
-                            if data is None:
-                                raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
+                            #if data is None:
+                            #    raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
                             if(type(data) is list):
                                 ff_='{0:<'+str(self.ff__+len(data)+5)+'}'
                                 data_str = ff_.format(str(data))
@@ -414,9 +421,8 @@ class Exporter (object):
 
             #Get all the necessary data for all the datasets we have.
             #all_data = self.connection.call('get_multiple_vals_at_time',
-            #                            {'dataset_ids':dataset_ids,
-            #                             'timestamps' : soap_times})
-
+             #                           {'dataset_ids':dataset_ids,
+              #                           'timestamps' : soap_times})
 
             for attribute in attributes:
                 self.output_file_contents.append("\nparam "+attribute.name+":\n")
@@ -430,25 +436,26 @@ class Exporter (object):
                     contents=[]
                     for t, timestamp in enumerate(self.time_index.values()):
                         attr = resource.get_attribute(attr_name=attribute.name)
-                        if attr is not None and attr.dataset_id is not None:
+                        if attr is not None and attr.dataset_id is not None and attr.dataset_type == 'timeseries':
                             #Get the value at this time in the given timestamp
                             soap_time = date_to_string(timestamp)
                             value=all_res_data[attr.dataset_id]
+                            data=None
+                            value_=None
                             for st, data_ in value.items():
-                                pass
-                            data=self.get_time_value(data_, soap_time)
+                                tmp=str(self.get_time_value(data_, soap_time))
+                                if tmp is None or tmp=="None":
+                                     raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
+                                if(data is not None):
+                                    data=data+"-"+tmp
+                                else:
+                                    data=tmp
+
+                            #data=self.get_time_value(data_, soap_time)
                             #data_2 = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
-                            '''
-                            if( str(data).strip() !=str(data_2).strip()):
-                                print "Error detected =========================================================="
-                                print "data: ", data
-                                print "data_2: ", data_2
-                                print soap_time
-                                print data_
-                                raise HydraPluginError("Dataset %s data for time %s is eror"%(attr.dataset_id, soap_time))
-                            '''
-                            if data is None:
-                                raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
+
+                            # if data is None:
+                            #     raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
 
                             data_str =self.ff.format(str(data))
                             #self.output_file_contents.append("   "+data_str)
@@ -489,7 +496,6 @@ class Exporter (object):
                     else:
                         new_data=new_data+" "+str(v)
                 data=new_data+"]"
-
         return data
 
 
@@ -501,14 +507,15 @@ class Exporter (object):
             if(timestamp<self.time_table[times[i]]):
                 if(i>0 and timestamp>self.time_table[times[i-1]]):
                     return times[i-1]
-        return self.get_last_valid_occurrence(timestamp, times)
+
+        return self.get_last_valid_occurrence(timestamp, times, 12)
         return None
 
-    def get_last_valid_occurrence(self, timestamp, times):
+    def get_last_valid_occurrence(self, timestamp, times, switch=None):
         for date_time in times:
             if self.time_table[date_time] [5:] == timestamp [5:]:
                 return date_time
-            else:
+            elif (switch is None):
                 time=self.time_table[date_time][:5]+timestamp  [5:]
                 re_time=self.check_time(time,times)
                 if(re_time is not None):
@@ -587,7 +594,6 @@ class Exporter (object):
                     break
         else:
              dim.append(len(arr))
-
         return dim
 
     def export_arrays(self, resources):
