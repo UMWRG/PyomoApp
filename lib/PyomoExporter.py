@@ -26,7 +26,7 @@ from string import ascii_lowercase
 
 from HydraLib.PluginLib import JsonConnection
 from HydraLib.hydra_dateutil import guess_timefmt, date_to_string
-from HydraLib.PluginLib import HydraNetwork
+from HydraLib.resources import HydraNetwork
 from HydraLib.util import array_dim, parse_array
 from PyomoAppLib import get_link_name
 from PyomoAppLib import get_link_name_for_param
