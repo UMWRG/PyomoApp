@@ -26,7 +26,7 @@ from string import ascii_lowercase
 
 from HydraLib.PluginLib import JsonConnection
 from HydraLib.hydra_dateutil import guess_timefmt, date_to_string
-from HydraLib.resources import HydraNetwork
+from HydraLib.PluginLib import HydraNetwork
 from HydraLib.util import array_dim, parse_array
 from PyomoAppLib import get_link_name
 from PyomoAppLib import get_link_name_for_param
@@ -470,7 +470,7 @@ class Exporter (object):
         data=None
         self.set_time_table(value.keys())
         for date_time, item_value in value.items():
-            if(date_time.startswith("XXXX")):
+            if(date_time.startswith("XXXX") or date_time.startswith("9999")):
                 if date_time [5:] == soap_time [5:]:
                     data=item_value
                     break
@@ -529,6 +529,8 @@ class Exporter (object):
              else:
                  if date_time.startswith("XXXX"):
                      self.time_table[date_time]=date_to_string(parse(date_time.replace("XXXX","1900")))
+                 elif date_time.startswith("9999"):
+                     self.time_table[date_time]=date_to_string(parse(date_time.replace("9999","1900")))
                  else:
                      self.time_table[date_time]=date_to_string(parse(date_time))
 
