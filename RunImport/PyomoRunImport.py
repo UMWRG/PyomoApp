@@ -81,9 +81,9 @@ if lib_path not in sys.path:
 
 from PyomoAppLib import convert_to_int
 from PyomoAppLib import read_inputData
-from PyomoExporter import Exporter
-from PyomoImporter import Importer
-from PyomoWrapper import run_model
+from Exporter import Exporter
+from Importer import Importer
+from Wrapper import run_model
 from HydraLib import PluginLib
 from HydraLib.PluginLib import write_progress
 

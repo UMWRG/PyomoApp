@@ -34,14 +34,14 @@ from PyomoAppLib import translate_attr_name
 from PyomoAppLib import arr_to_matrix
 from HydraLib.PluginLib import write_progress
 from HydraLib.HydraException import HydraPluginError
+from HydraLib.PluginLib import JSONPlugin
 
 import json
 from dateutil.parser import parse
 import logging
 log = logging.getLogger(__name__)
 
-class Exporter (object):
-
+class Exporter (JSONPlugin):
     def __init__(self, steps, output_file, link_export_flag,  url=None, session_id=None):
         self.steps=steps
         write_progress(1, self.steps)
@@ -541,8 +541,11 @@ class Exporter (object):
         time_string+=(':=')
         return time_string
 
+
     def write_time_index(self, start_time=None, end_time=None, time_step=None,
                          time_axis=None):
+
+
         try:
             log.info("Writing time index")
 

@@ -117,7 +117,7 @@ if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
 from PyomoAppLib import convert_to_int
-from PyomoExporter import Exporter
+from Exporter import Exporter
 from HydraLib import PluginLib
 import argparse as ap
 from HydraLib.PluginLib import write_progress
