@@ -17,6 +17,7 @@
 #
 
 from HydraLib import PluginLib
+from HydraLib.HydraException import HydraPluginError
 __author__ = 'K. Mohamed'
 
 
@@ -71,20 +72,28 @@ Written by Khaled Mohamed <khaled.mohamed@manchester.ac.uk>
     return parser
 
 def convert_to_int(value, type):
+    '''
+    convert value to integer
+    it is used for both network id and scenario id
+    '''
     try:
         value=int (value)
         return value
     except:
         message=[type+ " needs to be an integer, input is:  "+value]
-        err = PluginLib.create_xml_response('PyomoExporter', "", "", errors = message)
-        print err
-        sys.exit(0)
+        raise HydraPluginError('Time axis not specified.')
 
 def get_link_name(link):
+    '''
+    get link name using its nodes names
+    '''
     name='['+ link.from_node+','+link.to_node+']'
     return name
 
 def get_link_name_for_param(link):
+    '''
+    get linke name to be used with parameter
+    '''
     name= link.from_node+' '+link.to_node
     return name
 
@@ -104,6 +113,9 @@ def translate_attr_name(name):
     return name
 
 def read_inputData(datafile):
+     '''
+     read actual time steps from data file
+     '''
      data = open(datafile, "r")
      actual_time_steps=[]
      for line in data:
@@ -203,6 +215,9 @@ def export_arrays(self, resources):
         return attr_outputs
 
 class ModelVarable:
+    '''
+    class to hold varaible data
+    '''
     def __init__(self, name, owner, desc, unit, data_set=None, data_type=None):
         self.name=name
         self.dec=desc

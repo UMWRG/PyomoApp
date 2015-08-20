@@ -132,7 +132,7 @@ def export_data(args):
     exporter=Exporter(steps, args.output, link_export_flag, args.server_url, args.session_id)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
-        exporter.write_time_index(start_time=args.start_date,
+        exporter.get_time_index(start_time=args.start_date,
                                       end_time=args.end_date,
                                       time_step=args.time_step)
     elif args.time_axis is not None:
@@ -144,6 +144,9 @@ def export_data(args):
     return exporter.net
 
 def check_args(args):
+    '''
+    check arguments which user input
+    '''
     try:
         int(args.network)
     except (TypeError, ValueError):

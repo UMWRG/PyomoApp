@@ -121,6 +121,9 @@ class Importer:
         self.import_objs()
 
     def import_vars(self):
+        '''
+        import varaible to Hydra
+        '''
         nodes = dict()
         for node in self.network.nodes:
             nodes.update({node.id: node.name})
@@ -194,6 +197,9 @@ class Importer:
                                     # "Attr is added ...."
 
     def import_objs(self):
+        '''
+        import objects values to Hydra
+        '''
         for var in self.objs.keys():
             for varModel in self.objs[var]:
                 for attr in self.network.attributes:

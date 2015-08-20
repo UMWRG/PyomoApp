@@ -144,7 +144,7 @@ def export_data(args):
                                       end_time=args.end_date,
                                       time_step=args.time_step)
     elif args.time_axis is not None:
-        exporter.write_time_index(time_axis=args.time_axis)
+        exporter.get_time_index(time_axis=args.time_axis)
     else:
         raise HydraPluginError('Time axis not specified.')
 

@@ -32,6 +32,9 @@ import logging
 log = logging.getLogger(__name__)
 
 def get_values(instance, var_, list_, units):
+    '''
+    get variable value from model instance
+    '''
     owner=[]
     x_var = getattr(instance, var_)
     for xx in x_var:
@@ -62,6 +65,9 @@ def get_values(instance, var_, list_, units):
     return list_
 
 def run_model(filename, modelfile):
+    '''
+    Run the model file
+    '''
     #Convert truncated file names, containing a "~1" into the full path
     if os.name == 'nt':
         import win32file
@@ -70,7 +76,6 @@ def run_model(filename, modelfile):
     mname=os.path.dirname(modelfile)
     sys.path.append(mname)
     log.info("Importing the model from %s ", modelfile)
-
     mm=importlib.import_module(os.path.basename(modelfile).split('.')[0])
     log.info("Importing the model %s", os.path.basename(modelfile).split('.')[0])
     run_model=getattr(mm, 'run_model')
@@ -87,9 +92,8 @@ def run_model(filename, modelfile):
             raise HydraPluginError('Terminated due to external conditions (e.g. interrupts)')
         elif(rs.solver.status == SolverStatus.error):
             raise HydraPluginError('Terminated internally with error')
-
         if rs.solver.termination_condition==TerminationCondition.unknown:
-            raise HydraPluginError('solver termination with unknow error')
+            raise HydraPluginError('solver termination with unknow error, this may indicate that the problem is infeasible')
         elif rs.solver.termination_condition==TerminationCondition.maxTimeLimit:
             raise HydraPluginError('Exceeded maximum time limit allowed ')
         elif rs.solver.termination_condition==TerminationCondition.maxIterations:
@@ -126,6 +130,9 @@ def run_model(filename, modelfile):
     return analyse_results (res, instances, units)
 
 def get_units(modelfile):
+    '''
+    get variables units from model file
+    '''
     units={}
     contents = open(modelfile, "r")
     for line in contents:
@@ -140,6 +147,9 @@ def get_units(modelfile):
     return units
 
 def analyse_results (res, instances, units):
+    '''
+    analyis the results to get variables values
+    '''
     vars={}
     objs={}
     time_step=1
@@ -163,6 +173,9 @@ def analyse_results (res, instances, units):
     return vars, objs
 
 def get_obj_value(result, var_, list_, units):
+    '''
+    get objectives values from the result
+    '''
     value_=result.solution[0].objective[1].Value
     varmodel=None
     for varmodel_ in list_:

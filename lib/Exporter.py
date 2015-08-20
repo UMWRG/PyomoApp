@@ -36,6 +36,7 @@ from HydraLib.PluginLib import write_progress
 from HydraLib.HydraException import HydraPluginError
 from HydraLib.PluginLib import JSONPlugin
 
+
 import json
 from dateutil.parser import parse
 import logging
@@ -66,6 +67,9 @@ class Exporter (JSONPlugin):
 
 
     def export_network (self, network_id, scenario_id, template_id, export_by_type=False):
+        '''
+        export the network from Hydra
+        '''
         write_progress(2, self.steps)
         net = self.connection.call('get_network', {'network_id':network_id,
                                                    'include_data': 'Y',
@@ -117,6 +121,10 @@ class Exporter (JSONPlugin):
             self.export_data_using_attributes()
 
     def get_longest_node_link_name(self):
+        '''
+        get the length of longest node and link name to be used
+         for file format
+        '''
         node_name_len=0
         for node in self.network.nodes:
             if len(node.name)>node_name_len:
@@ -126,6 +134,9 @@ class Exporter (JSONPlugin):
         self.ff__=2*node_name_len+5
 
     def save_file(self):
+        '''
+        save output file
+        '''
         write_progress(8, self.steps)
         log.info("writing data to file")
         file = open(self.output_file, "w")
@@ -133,12 +144,18 @@ class Exporter (JSONPlugin):
         file.close()
 
     def write_nodes(self):
+        '''
+        write nodes to output file
+        '''
         self.output_file_contents.append("\n\nset  nodes := ")
         for node in self.network.nodes:
             self.output_file_contents.append(" "+node.name)
         self.output_file_contents.append(';')
 
     def write_links(self, nodes_map):
+        '''
+        write links to output file
+        '''
         self.output_file_contents.append("\n\nset  links:= ")
         for link in self.network.links:
              if self.links_as_name is False:
@@ -500,6 +517,9 @@ class Exporter (JSONPlugin):
 
 
     def check_time(self, timestamp, times):
+        '''
+        check the time stamp to be sure it is valid and has data inside the scenario
+        '''
         for i in range (0, len(times)):
             if(i==0):
                 if(timestamp<self.time_table[times[0]]):
@@ -512,6 +532,9 @@ class Exporter (JSONPlugin):
         return None
 
     def get_last_valid_occurrence(self, timestamp, times, switch=None):
+        '''
+        get valid time for timestamp from the times using times_table dictionary
+        '''
         for date_time in times:
             if self.time_table[date_time] [5:] == timestamp [5:]:
                 return date_time
@@ -523,18 +546,23 @@ class Exporter (JSONPlugin):
         return None
 
     def set_time_table(self, times):
-         for date_time in times:
+        '''
+         set values inside time_table dictionary
+         to be used later to retrieve data for timestamp
+        '''
+        for date_time in times:
              if  date_time in self.time_table:
                  pass
              else:
                  if date_time.startswith("XXXX"):
-                     self.time_table[date_time]=date_to_string(parse(date_time.replace("XXXX","1900")))
-                 elif date_time.startswith("9999"):
-                     self.time_table[date_time]=date_to_string(parse(date_time.replace("9999","1900")))
+                     self.time_table[date_time]=date_to_string(parse(date_time.replace("XXXX","9999")))
                  else:
                      self.time_table[date_time]=date_to_string(parse(date_time))
 
     def write_time(self):
+        '''
+        Write time index to a string and returned to be witten in the input file
+        '''
         time_string=self.ff.format("")
         for t in self.time_index.keys():
             time_string+=(self.ff.format(str(t)))
@@ -542,36 +570,20 @@ class Exporter (JSONPlugin):
         return time_string
 
 
-    def write_time_index(self, start_time=None, end_time=None, time_step=None,
+    def get_time_index(self, start_time=None, end_time=None, time_step=None,
                          time_axis=None):
-
-
+        '''
+        get time index using either time axis provided or start, end time and time step
+        '''
         try:
             log.info("Writing time index")
-
-            if time_axis is None:
-                start_date =datetime.strptime(start_time, guess_timefmt(start_time))
-                end_date =datetime.strptime(end_time, guess_timefmt(end_time))
-                delta_t, value, units = self.parse_time_step(time_step)
-
-                t = 1
-                value=int(value)
-
-                while start_date <= end_date:
-                    self.time_index[t]=start_date
-                    if(units.lower()== "mon"):
-                        start_date=start_date+relativedelta(months=value)
-                    elif (units.lower()== "yr"):
-                        start_date=start_date+relativedelta(years=value)
-                    else:
-                        start_date += timedelta(delta_t)
-                    t += 1
-            else:
-                time_axis = ' '.join(time_axis).split(',')
-                t = 1
-                for timestamp in time_axis:
-                    date = end_date =datetime.strptime(timestamp.strip(), guess_timefmt(timestamp.strip()))
-                    self.time_index[t]=date
+            time_axis = self.get_time_axis(start_time,
+                                  end_time,
+                                  time_step,
+                                  time_axis=time_axis)
+            t = 1
+            for timestamp in time_axis:
+                    self.time_index[t]=timestamp
                     t += 1
         except Exception as e:
             raise HydraPluginError("Please check time-axis or start time, end times and time step.")
