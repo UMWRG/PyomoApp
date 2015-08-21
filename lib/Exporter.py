@@ -377,12 +377,11 @@ class Exporter (JSONPlugin):
                             for st, data_ in value.items():
                                 tmp=str(self.get_time_value(data_, soap_time))
                                 if tmp is None or tmp=="None":
-                                     raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
+                                    raise HydraPluginError("Resourcse %s has not value for attribute %s for time: %s, i.e.dataset %s has no data for time %s"%(resource.name, attr.name, soap_time, attr.dataset_id, soap_time))
                                 if(data is not None):
                                     data=data+"-"+tmp
                                 else:
                                     data=tmp
-
 
                             #data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
                             #if data is None:
@@ -462,7 +461,7 @@ class Exporter (JSONPlugin):
                             for st, data_ in value.items():
                                 tmp=str(self.get_time_value(data_, soap_time))
                                 if tmp is None or tmp=="None":
-                                     raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
+                                    raise HydraPluginError("Resourcse %s has not value for attribute %s for time: %s, i.e.dataset %s has no data for time %s"%(resource.name, attr.name, soap_time, attr.dataset_id, soap_time))
                                 if(data is not None):
                                     data=data+"-"+tmp
                                 else:
@@ -484,11 +483,19 @@ class Exporter (JSONPlugin):
                 self.output_file_contents.append(';\n')
 
     def get_time_value(self, value, soap_time):
+        '''
+        get data for timesamp
+        return None if no data is found
+        '''
         data=None
         self.set_time_table(value.keys())
+        soap_datetime = self.parse_date(soap_time)
         for date_time, item_value in value.items():
-            if(date_time.startswith("XXXX") or date_time.startswith("9999")):
-                if date_time [5:] == soap_time [5:]:
+            if date_time.startswith("9999") or date_time.startswith('XXXX'):
+                #copy the year from the soap time and put it as the first 4
+                #characters of the seasonal datetime.
+                value_datetime = self.parse_date(soap_time[0:4]+date_time[4:])
+                if (value_datetime) == (soap_datetime):
                     data=item_value
                     break
             elif date_time==soap_time:
@@ -508,54 +515,63 @@ class Exporter (JSONPlugin):
             if type(data) is list:
                 new_data="["
                 for v in data:
-                    if(new_data== "["):
+                    if new_data== "[":
                         new_data=new_data+str(v)
                     else:
                         new_data=new_data+" "+str(v)
                 data=new_data+"]"
         return data
 
+    def parse_date(self, date):
+        """Parse date string supplied from the user. All formats supported by
+        HydraLib.PluginLib.guess_timefmt can be used.
+        """
+        # Guess format of the string
+        FORMAT = guess_timefmt(date)
+        return datetime.strptime(date, FORMAT)
 
-    def check_time(self, timestamp, times):
+
+    def check_time(self, timestamp, times, key=None):
         '''
-        check the time stamp to be sure it is valid and has data inside the scenario
+        check time
+        if the timestamp is before the the earliest date
+        it will retunn None
         '''
         for i in range (0, len(times)):
-            if(i==0):
-                if(timestamp<self.time_table[times[0]]):
+            if i==0:
+                if parse(timestamp)<parse(self.time_table[times[0]]):
                      return None
-            if(timestamp<self.time_table[times[i]]):
-                if(i>0 and timestamp>self.time_table[times[i-1]]):
+            elif parse(timestamp)<parse(self.time_table[times[i]]):
+                if  parse(timestamp)>parse(self.time_table[times[i-1]]):
                     return times[i-1]
+        if(key is None):
+            return self.get_last_valid_occurrence(timestamp, times)
 
-        return self.get_last_valid_occurrence(timestamp, times, 12)
-        return None
-
-    def get_last_valid_occurrence(self, timestamp, times, switch=None):
+    def get_last_valid_occurrence(self, timestamp, times):
         '''
-        get valid time for timestamp from the times using times_table dictionary
+        get the last occurrence
         '''
         for date_time in times:
-            if self.time_table[date_time] [5:] == timestamp [5:]:
+            if self.time_table[date_time][5:] == timestamp[5:]:
                 return date_time
-            elif (switch is None):
+
+        for date_time in times:
                 time=self.time_table[date_time][:5]+timestamp  [5:]
-                re_time=self.check_time(time,times)
-                if(re_time is not None):
+                re_time=self.check_time(time,times, 0)
+                if re_time is not None:
                     return re_time
         return None
 
+
     def set_time_table(self, times):
-        '''
-         set values inside time_table dictionary
-         to be used later to retrieve data for timestamp
-        '''
-        for date_time in times:
+         for date_time in times:
              if  date_time in self.time_table:
                  pass
              else:
                  if date_time.startswith("XXXX"):
-                     self.time_table[date_time]=date_to_string(parse(date_time.replace("XXXX","9999")))
+                     self.time_table[date_time]=date_to_string(parse(date_time.replace("XXXX","1900")))
+                 elif date_time.startswith("9999"):
+                     self.time_table[date_time]=date_to_string(parse(date_time.replace("9999","1900")))
                  else:
                      self.time_table[date_time]=date_to_string(parse(date_time))
 
