@@ -21,7 +21,7 @@ __author__ = 'K. Mohamed'
 from pyomo.environ import *
 from pyomo.opt import SolverStatus, TerminationCondition
 
-from PyomoAppLib import ModelVarable
+from HydraPyomoLib import ModelVarable
 import os
 import sys
 import importlib

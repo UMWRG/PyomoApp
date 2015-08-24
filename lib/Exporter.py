@@ -28,10 +28,10 @@ from HydraLib.PluginLib import JsonConnection
 from HydraLib.hydra_dateutil import guess_timefmt, date_to_string
 from HydraLib.PluginLib import HydraNetwork
 from HydraLib.util import array_dim, parse_array
-from PyomoAppLib import get_link_name
-from PyomoAppLib import get_link_name_for_param
-from PyomoAppLib import translate_attr_name
-from PyomoAppLib import arr_to_matrix
+from HydraPyomoLib import get_link_name
+from HydraPyomoLib import get_link_name_for_param
+from HydraPyomoLib import translate_attr_name
+from HydraPyomoLib import arr_to_matrix
 from HydraLib.PluginLib import write_progress
 from HydraLib.HydraException import HydraPluginError
 from HydraLib.PluginLib import JSONPlugin
@@ -42,7 +42,7 @@ from dateutil.parser import parse
 import logging
 log = logging.getLogger(__name__)
 
-class Exporter (JSONPlugin):
+class PyomoExporter (JSONPlugin):
     def __init__(self, steps, output_file, link_export_flag,  url=None, session_id=None):
         self.steps=steps
         write_progress(1, self.steps)

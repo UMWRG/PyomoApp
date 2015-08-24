@@ -122,10 +122,10 @@ if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
 import argparse as ap
-from PyomoAppLib import convert_to_int
-from PyomoAppLib import read_inputData
-from Exporter import Exporter
-from Importer import Importer
+from HydraPyomoLib import convert_to_int
+from HydraPyomoLib import read_inputData
+from Exporter import PyomoExporter
+from Importer import PyomoImporter
 from Wrapper import run_model
 from HydraLib import PluginLib
 from HydraLib.PluginLib import write_progress
@@ -137,7 +137,7 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    exporter=Exporter(steps, args.output, link_export_flag, args.server_url, args.session_id)
+    exporter=PyomoExporter(steps, args.output, link_export_flag, args.server_url, args.session_id)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.write_time_index(start_time=args.start_date,
@@ -154,7 +154,7 @@ def export_data(args):
 
 def import_result(args, vars, objs, actual_time_steps):
     write_progress(9, steps)
-    imp=Importer(vars, objs, actual_time_steps, args.server_url, args.session_id)
+    imp=PyomoImporter(vars, objs, actual_time_steps, args.server_url, args.session_id)
     write_progress(10, steps)
     imp.load_network(args.network, args.scenario)
     write_progress(11, steps)

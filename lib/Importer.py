@@ -26,7 +26,7 @@ import json
 log = logging.getLogger(__name__)
 
 
-class Importer:
+class PyomoImporter (object):
     def __init__(self, vars, objs, actual_time_steps, url=None, session_id=None):
         self.vars=vars
         self.objs=objs

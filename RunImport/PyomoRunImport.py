@@ -79,10 +79,10 @@ lib_path = os.path.realpath(os.path.abspath(pyomolibpath))
 if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
-from PyomoAppLib import convert_to_int
-from PyomoAppLib import read_inputData
-from Exporter import Exporter
-from Importer import Importer
+from HydraPyomoLib import convert_to_int
+from HydraPyomoLib import read_inputData
+from Exporter import PyomoExporter
+from Importer import PyomoImporter
 from Wrapper import run_model
 from HydraLib import PluginLib
 from HydraLib.PluginLib import write_progress

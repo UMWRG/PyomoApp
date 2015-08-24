@@ -116,8 +116,8 @@ lib_path = os.path.realpath(os.path.abspath(pyomolibpath))
 if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
-from PyomoAppLib import convert_to_int
-from Exporter import Exporter
+from HydraPyomoLib import convert_to_int
+from Exporter import PyomoExporter
 from HydraLib import PluginLib
 import argparse as ap
 from HydraLib.PluginLib import write_progress
@@ -129,7 +129,7 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    exporter=Exporter(steps, args.output, link_export_flag, args.server_url, args.session_id)
+    exporter=PyomoExporter(steps, args.output, link_export_flag, args.server_url, args.session_id)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.get_time_index(start_time=args.start_date,
