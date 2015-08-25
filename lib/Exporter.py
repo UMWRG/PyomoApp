@@ -43,45 +43,45 @@ import logging
 log = logging.getLogger(__name__)
 
 class PyomoExporter (JSONPlugin):
-    def __init__(self, steps, output_file, link_export_flag,  url=None, session_id=None):
-        self.steps=steps
-        write_progress(1, self.steps)
-        self.connection = JsonConnection(url)
-        self.output_file=output_file
-        self.output_file_contents=[];
-        self.output_file_contents.append("#%s\n"%("*"*78,))
-        self.output_file_contents.append("# Data exported from Hydra using PyomoPlugin.\n")
-        self.output_file_contents.append("# (c) Copyright 2015, University of Manchester\n")
-        self.time_index = {}
 
-        if session_id is not None:
-            log.info("Using existing session %s", session_id)
-            self.connection.session_id=session_id
-        else:
-            self.connection.login()
+    def __init__(self, args, link_export_flag, steps):
 
         if link_export_flag == 'l':
             self.links_as_name = True
         else:
             self.links_as_name = False
+        self.steps=steps
 
+        self.use_gams_date_index=False
+        self.network_id = int(args.network)
+        self.scenario_id = int(args.scenario)
+        self.template_id = int(args.template_id) if args.template_id is not None else None
+        self.output_file = args.output
+        self.export_by_type =args.export_by_type
+        self.time_index = []
+        write_progress(1, self.steps)
+        self.output_file_contents=[];
+        self.output_file_contents.append("#%s\n"%("*"*78,))
+        self.output_file_contents.append("# Data exported from Hydra using PyomoPlugin.\n")
+        self.output_file_contents.append("# (c) Copyright 2015, University of Manchester\n")
+        self.time_index = {}
+        self.connect(args)
 
-    def export_network (self, network_id, scenario_id, template_id, export_by_type=False):
+    def export_network (self):
         '''
         export the network from Hydra
         '''
         write_progress(2, self.steps)
-        net = self.connection.call('get_network', {'network_id':network_id,
+        net = self.connection.call('get_network', {'network_id':self.network_id,
                                                    'include_data': 'Y',
-                                                   'template_id':template_id,
-                                                   'scenario_ids':[scenario_id]})
+                                                   'template_id':self.template_id,
+                                                   'scenario_ids':[self.scenario_id]})
 
         log.info("Network retrieved")
         attrs = self.connection.call('get_all_attributes', {})
         log.info("%s attributes retrieved", len(attrs))
         self.net=net
         self.network= HydraNetwork()
-        self.template_id =template_id
         self.network.load(net , attrs)
         log.info("Loading net into network.")
         nodes_map=dict ()
@@ -89,8 +89,8 @@ class PyomoExporter (JSONPlugin):
             nodes_map[node.id]=node.name
         self.get_longest_node_link_name();
         write_progress(3, self.steps)
-        self.output_file_contents.append("# Network-ID:  "+str(network_id));
-        self.output_file_contents.append("\n# Scenario-ID: "+str(scenario_id));
+        self.output_file_contents.append("# Network-ID:  "+str(self.network_id));
+        self.output_file_contents.append("\n# Scenario-ID: "+str(self.scenario_id));
         self.output_file_contents.append("\n#" + "*"*100)
 
         self.write_nodes()
@@ -115,7 +115,7 @@ class PyomoExporter (JSONPlugin):
             self.output_file_contents.append(';\n')
         write_progress(7, self.steps)
 
-        if export_by_type is True:
+        if self.export_by_type is True:
             self.export_data_using_types(nodes_types, links_types)
         else:
             self.export_data_using_attributes()

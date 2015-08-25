@@ -137,7 +137,7 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    exporter=PyomoExporter(steps, args.output, link_export_flag, args.server_url, args.session_id)
+    exporter=PyomoExporter(args, steps, link_export_flag)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.write_time_index(start_time=args.start_date,
@@ -148,7 +148,8 @@ def export_data(args):
     else:
         raise HydraPluginError('Time axis not specified.')
 
-    exporter.export_network(netword_id,  scenario_id, template_id, args.export_by_type)
+    exporter.export_network()
+
     exporter.save_file()
     return exporter.net
 
