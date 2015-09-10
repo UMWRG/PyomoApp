@@ -137,7 +137,7 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    exporter=PyomoExporter(args, steps, link_export_flag)
+    exporter=PyomoExporter(args, link_export_flag, steps)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.write_time_index(start_time=args.start_date,
@@ -244,8 +244,8 @@ def check_args(args):
 if __name__ == '__main__':
     parser = commandline_parser()
     args = parser.parse_args()
+    steps=12
     try:
-        steps=12
         check_args(args)
         netword_id=convert_to_int(args.network, "Network Id")
         scenario_id=convert_to_int(args.scenario, "scenario Id")

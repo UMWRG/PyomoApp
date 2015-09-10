@@ -129,7 +129,7 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    exporter=PyomoExporter(args, steps, link_export_flag)
+    exporter=PyomoExporter(args, link_export_flag, steps)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.get_time_index(start_time=args.start_date,
