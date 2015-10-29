@@ -27,7 +27,7 @@ from string import ascii_lowercase
 from HydraLib.PluginLib import JsonConnection
 from HydraLib.hydra_dateutil import guess_timefmt, date_to_string
 from HydraLib.PluginLib import HydraNetwork
-from HydraLib.util import array_dim, parse_array
+#from HydraLib.util import array_dim, parse_array
 from HydraPyomoLib import get_link_name
 from HydraPyomoLib import get_link_name_for_param
 from HydraPyomoLib import translate_attr_name
@@ -35,6 +35,8 @@ from HydraPyomoLib import arr_to_matrix
 from HydraLib.PluginLib import write_progress
 from HydraLib.HydraException import HydraPluginError
 from HydraLib.PluginLib import JSONPlugin
+from HydraLib.hydra_dateutil import reindex_timeseries
+
 
 
 import json
@@ -340,12 +342,13 @@ class PyomoExporter (JSONPlugin):
             for attribute in attributes:
                 for resource in resources:
                     attr = resource.get_attribute(attr_name=attribute.name)
-                    if attr is not None and attr.dataset_id is not None:
-                        dataset_ids.append(attr.dataset_id)
-                        value=json.loads(attr.value)
-                        all_res_data[attr.dataset_id]=value
+                    if attr is  None or attr.dataset_id is None:
+                        continue
+                    dataset_ids.append(attr.dataset_id)
+                    value=json.loads(attr.value)
+                    all_res_data[attr.dataset_id]=value
 
-            
+
             #We need to get the value at each time in the specified time axis,
             #so we need to identify the relevant timestamps.
             soap_times = []
@@ -367,36 +370,32 @@ class PyomoExporter (JSONPlugin):
                         name=get_link_name(resource)
                     #self.output_file_contents.append("\n  "+name)
                     nname="\n  "+name
-                    contents=[]
-                    for t, timestamp in enumerate(self.time_index.values()):
-                        attr = resource.get_attribute(attr_name=attribute.name)
-                        if attr is not None and attr.dataset_id is not None and attr.dataset_type == 'timeseries':
-                            #Get the value at this time in the given timestamp
-                            soap_time = date_to_string(timestamp)
-                            value=all_res_data[attr.dataset_id]
-                            for st, data_ in value.items():
-                                tmp=str(self.get_time_value(data_, soap_time))
-                                if tmp is None or tmp=="None":
-                                    raise HydraPluginError("Resourcse %s has not value for attribute %s for time: %s, i.e.dataset %s has no data for time %s"%(resource.name, attr.name, soap_time, attr.dataset_id, soap_time))
-                                if(data is not None):
-                                    data=data+"-"+tmp
-                                else:
-                                    data=tmp
+                    attr = resource.get_attribute(attr_name=attribute.name)
+                    if attr is None or attr.dataset_id is  None or attr.dataset_type != 'timeseries':
+                        continue
+                    try:
+                        all_data = self.get_time_value(attr.value, self.time_index.values())
+                    except Exception, e:
+                        log.exception(e)
+                        all_data = None
 
-                            #data = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
-                            #if data is None:
-                            #    raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
-                            if(type(data) is list):
-                                ff_='{0:<'+str(self.ff__+len(data)+5)+'}'
-                                data_str = ff_.format(str(data))
-                            else:
-                                data_str = self.ff.format(str(data))
-                            #self.output_file_contents.append("   "+data_str)
-                            contents.append(data_str)
-                    if len(contents)>0:
-                        self.output_file_contents.append(self.ff.format(nname))
-                        for st in contents:
-                            self.output_file_contents.append(st)
+                    if all_data is None:
+                        raise HydraPluginError("Error finding value attribute %s on"
+                                              "resource %s"%(attr.name, resource.name))
+                    self.output_file_contents.append(self.ff.format(nname))
+
+                    for timestamp in self.time_index.values():
+                        tmp = all_data[timestamp]
+
+                        if isinstance(tmp, list):
+                            data="-".join(tmp)
+                            ff_='{0:<'+self.array_len+'}'
+                            data_str = ff_.format(str(data))
+                        else:
+                            data=str(tmp)
+                            data_str = self.ff.format(str(float(data)))
+                        self.output_file_contents.append(data_str)
+
                 self.output_file_contents.append(';\n')
 
     def export_timeseries_using_attributes(self, resources, res_type=None):
@@ -444,45 +443,71 @@ class PyomoExporter (JSONPlugin):
                 self.output_file_contents.append("\nparam "+attribute.name+":\n")
                 self.output_file_contents.append(self.write_time())
                 for resource in resources:
+                    attr = resource.get_attribute(attr_name=attribute.name)
+                    if attr is None or attr.dataset_id is  None or attr.dataset_type != 'timeseries':
+                        continue
+
+                    try:
+                        all_data = self.get_time_value(attr.value, self.time_index.values())
+                    except Exception, e:
+                        log.exception(e)
+                        all_data = None
+
+                    if all_data is None:
+                        raise HydraPluginError("Error finding value attribute %s on"
+                                              "resource %s"%(attr.name, resource.name))
+
                     name=resource.name
                     if islink is True and self.links_as_name is False:
                         name=get_link_name(resource)
                     #self.output_file_contents.append("\n  "+name)
                     nname="\n  "+name;
-                    contents=[]
-                    for t, timestamp in enumerate(self.time_index.values()):
-                        attr = resource.get_attribute(attr_name=attribute.name)
-                        if attr is not None and attr.dataset_id is not None and attr.dataset_type == 'timeseries':
-                            #Get the value at this time in the given timestamp
-                            soap_time = date_to_string(timestamp)
-                            value=all_res_data[attr.dataset_id]
-                            data=None
-                            value_=None
-                            for st, data_ in value.items():
-                                tmp=str(self.get_time_value(data_, soap_time))
-                                if tmp is None or tmp=="None":
-                                    raise HydraPluginError("Resourcse %s has not value for attribute %s for time: %s, i.e.dataset %s has no data for time %s"%(resource.name, attr.name, soap_time, attr.dataset_id, soap_time))
-                                if(data is not None):
-                                    data=data+"-"+tmp
-                                else:
-                                    data=tmp
+                    self.output_file_contents.append(self.ff.format(nname))
 
-                            #data=self.get_time_value(data_, soap_time)
-                            #data_2 = json.loads(all_data["dataset_%s"%attr.dataset_id]).get(soap_time)
+                    for timestamp in self.time_index.values():
+                        tmp = all_data[timestamp]
 
-                            # if data is None:
-                            #     raise HydraPluginError("Dataset %s has no data for time %s"%(attr.dataset_id, soap_time))
+                        if isinstance(tmp, list):
+                            data="-".join(tmp)
+                            ff_='{0:<'+self.array_len+'}'
+                            data_str = ff_.format(str(data))
+                        else:
+                            data=str(tmp)
+                            data_str = self.ff.format(str(float(data)))
+                        self.output_file_contents.append(data_str)
 
-                            data_str =self.ff.format(str(data))
-                            #self.output_file_contents.append("   "+data_str)
-                            contents.append(data_str)
-                    if len(contents)>0:
-                        self.output_file_contents.append(self.ff.format(nname))
-                        for st in contents:
-                            self.output_file_contents.append(st)
+
                 self.output_file_contents.append(';\n')
 
-    def get_time_value(self, value, soap_time):
+    def get_time_value(self, value, timestamps):
+        '''
+            get data for timesamp
+
+            :param a JSON string
+            :param a timestamp or list of timestamps (datetimes)
+            :returns a dictionary, keyed on the timestamps provided.
+            return None if no data is found
+        '''
+        converted_ts = reindex_timeseries(value, timestamps)
+
+        #For simplicity, turn this into a standard python dict with
+        #no columns.
+        value_dict = {}
+
+        val_is_array = False
+        if len(converted_ts.columns) > 1:
+            val_is_array = True
+
+        if val_is_array:
+            for t in timestamps:
+                value_dict[t] = converted_ts.loc[t].values.tolist()
+        else:
+            first_col = converted_ts.columns[0]
+            for t in timestamps:
+                value_dict[t] = converted_ts.loc[t][first_col]
+
+        return value_dict
+    def old_get_time_value(self, value, soap_time):
         '''
         get data for timesamp
         return None if no data is found
