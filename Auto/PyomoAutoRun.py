@@ -124,7 +124,7 @@ if lib_path not in sys.path:
 import argparse as ap
 from HydraPyomoLib import convert_to_int
 from HydraPyomoLib import read_inputData
-from Exporter import PyomoExporter
+from Exporter import Exporter
 from Importer import PyomoImporter
 from Wrapper import run_model
 from HydraLib import PluginLib
@@ -137,10 +137,10 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    exporter=PyomoExporter(args, link_export_flag, steps)
+    exporter=Exporter(args, link_export_flag, steps)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
-        exporter.write_time_index(start_time=args.start_date,
+        exporter.get_time_index(start_time=args.start_date,
                                       end_time=args.end_date,
                                       time_step=args.time_step)
     elif args.time_axis is not None:

@@ -36,7 +36,7 @@ def get_values(instance, var_, list_, units):
     get variable value from model instance
     '''
     owner=[]
-    x_var = getattr(instance, var_)
+    x_var = getattr(instance, str(var_))
     for xx in x_var:
         value_=x_var[xx].value
         owner=[]
@@ -48,16 +48,16 @@ def get_values(instance, var_, list_, units):
                     owner.append(mem)
             varmodel=None
             for varmodel_ in list_:
-                if varmodel_.name==var_ and varmodel_.owner==owner:
+                if varmodel_.name==str(var_) and varmodel_.owner==owner:
                     varmodel=varmodel_
                     break
             if(varmodel==None):
                 desc="Imported using Pyomo apps"
-                if var_ in units.keys():
-                    unit=units[var_]
+                if str(var_) in units.keys():
+                    unit=units[str(var_)]
                 else:
                     unit=None
-                varmodel=ModelVarable(var_, owner, desc, unit)
+                varmodel=ModelVarable(str(var_), owner, desc, unit)
                 list_.append(varmodel)
             varmodel.add_data(value_)
         except:
@@ -155,40 +155,45 @@ def analyse_results (res, instances, units):
     time_step=1
     for instance in instances:
         rs=res[time_step-1]
-        for var_ in instance.active_components(Var):
-            if var_ in vars.keys():
-                 list_=vars[var_]
+        for var_ in instance.component_objects(Var):
+        #for var_ in instance.active_components(Var):
+            if str(var_) in vars.keys():
+                 list_=vars[str(var_)]
             else:
                 list_=[]
-            vars[var_]=get_values(instance, var_, list_, units)
+            vars[str(var_)]=get_values(instance, var_, list_, units)
 
 
-        for var_ in instance.active_components(Objective):
-            if var_ in objs.keys():
-                 list_=objs[var_]
+        for obj in instance.component_objects(Objective):
+            if str(obj) in objs.keys():
+                 list_=objs[str(obj)]
             else:
                 list_=[]
-            objs[var_]=get_obj_value(rs, var_, list_, units)
+            objs[str(obj)]=get_obj_value(rs, obj, list_, units)
+
         time_step+=1
+
     return vars, objs
 
-def get_obj_value(result, var_, list_, units):
+def get_obj_value(result, obj, list_, units):
     '''
     get objectives values from the result
     '''
-    value_=result.solution[0].objective[1].Value
+    value_= float(result.Solver[0]['Termination message'].split("=")[1])
+     #value_=result.solution[0].objective[1].Value
+    #zvalue_=result.objective[1].Value
     varmodel=None
     for varmodel_ in list_:
-        if varmodel_.name==var_ and varmodel_.owner=='Network':
+        if varmodel_.name==str(obj) and varmodel_.owner=='Network':
             varmodel=varmodel_
             break
     if(varmodel==None):
         desc="Imported using Pyomo apps"
-        if var_ in units.keys():
-            unit=units[var_]
+        if str(obj) in units.keys():
+            unit=units[str(obj)]
         else:
             unit=None
-        varmodel=ModelVarable(var_, 'Network', desc, unit)
+        varmodel=ModelVarable(str(obj), 'Network', desc, unit)
         list_.append(varmodel)
     varmodel.add_data(value_)
     return list_

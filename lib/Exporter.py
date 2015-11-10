@@ -44,7 +44,7 @@ from dateutil.parser import parse
 import logging
 log = logging.getLogger(__name__)
 
-class PyomoExporter (JSONPlugin):
+class Exporter (JSONPlugin):
 
     def __init__(self, args, link_export_flag, steps):
 
@@ -205,6 +205,10 @@ class PyomoExporter (JSONPlugin):
         log.info("Exporting data")
         self.time_table={}
         # Export node data for each node type
+        self.export_parameters_using_types([self.network], "NETWORK", 'scalar')
+        self.export_parameters_using_types([self.network], "NETWORK", 'descriptor')
+        self.export_timeseries_using_types([self.network], "NETWORK")
+
         for node_type in nodes_types:
             nodes = self.network.get_node(node_type=node_type)
             self.export_parameters_using_types(nodes, node_type, 'scalar')
@@ -224,6 +228,11 @@ class PyomoExporter (JSONPlugin):
         # Export node data for each node type
         #for node_type in nodes_types:
         self.time_table={}
+        self.export_parameters_using_attributes([self.network], 'scalar',  res_type='NETWORK')
+        self.export_parameters_using_attributes([self.network],  'descriptor', res_type='NETWORK')
+        self.export_timeseries_using_attributes([self.network], res_type='NETWORK')
+
+        self.export_arrays(self.network.nodes)
         #nodes = self.network.get_node(node_type=node_type)
         self.export_parameters_using_attributes(self.network.nodes, 'scalar')
         self.export_parameters_using_attributes(self.network.nodes,  'descriptor')
@@ -238,8 +247,7 @@ class PyomoExporter (JSONPlugin):
         self.export_arrays(self.network.links)
         #
     def export_parameters_using_types(self, resources, obj_type, datatype, res_type=None):
-        """Export scalars or descriptors.
-        """
+        """Export scalars or descriptors.        """
         self.network.attributes
         islink = res_type == 'LINK'
         attributes = []
@@ -262,10 +270,12 @@ class PyomoExporter (JSONPlugin):
                     attr = resource.get_attribute(attr_name=attribute.name)
                     if attr is None or attr.value is None or  attr.dataset_type != datatype:
                         continue
-
-                    name=resource.name
-                    if islink is True and self.links_as_name is False:
+                    if(res_type is None):
+                        name=resource.name
+                    elif islink is True and self.links_as_name is False:
                         name=get_link_name_for_param(resource)
+                    else:
+                        name=""
 
                     #self.output_file_contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
                     contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value)))
@@ -301,10 +311,12 @@ class PyomoExporter (JSONPlugin):
                     attr = resource.get_attribute(attr_name=attribute.name)
                     if attr is None or attr.value is None or  attr.dataset_type != datatype:
                         continue
-
-                    name=resource.name
-                    if islink is True and self.links_as_name is False:
+                    if res_type is None:
+                        name=resource.name
+                    elif islink is True and self.links_as_name is False:
                             name=get_link_name_for_param(resource)
+                    else:
+                        name=""
 
                     #self.output_file_contents.append("\n "+name+"  "+str(attr.value.values()[0][0]))
                     contents.append("\n "+self.ff.format(name)+self.ff.format(str(attr.value)))
@@ -374,6 +386,7 @@ class PyomoExporter (JSONPlugin):
                     if attr is None or attr.dataset_id is  None or attr.dataset_type != 'timeseries':
                         continue
                     try:
+                        print self.time_index.values()
                         all_data = self.get_time_value(attr.value, self.time_index.values())
                     except Exception, e:
                         log.exception(e)

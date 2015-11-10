@@ -117,7 +117,7 @@ if lib_path not in sys.path:
     sys.path.insert(0, lib_path)
 
 from HydraPyomoLib import convert_to_int
-from Exporter import PyomoExporter
+from Exporter import Exporter
 from HydraLib import PluginLib
 import argparse as ap
 from HydraLib.PluginLib import write_progress
@@ -129,7 +129,7 @@ def export_data(args):
     template_id = None
     if args.template_id is not None:
             template_id = int(args.template_id)
-    exporter=PyomoExporter(args, link_export_flag, steps)
+    exporter=Exporter(args, link_export_flag, steps)
     if args.start_date is not None and args.end_date is not None \
                 and args.time_step is not None:
         exporter.get_time_index(start_time=args.start_date,
