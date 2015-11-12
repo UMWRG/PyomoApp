@@ -125,7 +125,7 @@ import argparse as ap
 from HydraPyomoLib import convert_to_int
 from HydraPyomoLib import read_inputData
 from Exporter import Exporter
-from Importer import PyomoImporter
+from Importer import Importer
 from Wrapper import run_model
 from HydraLib import PluginLib
 from HydraLib.PluginLib import write_progress
@@ -144,6 +144,8 @@ def export_data(args):
                                       end_time=args.end_date,
                                       time_step=args.time_step)
     elif args.time_axis is not None:
+        if args.time_axis is not None:
+            args.time_axis = ' '.join(args.time_axis).split(' ')
         exporter.get_time_index(time_axis=args.time_axis)
     else:
         raise HydraPluginError('Time axis not specified.')
@@ -155,7 +157,7 @@ def export_data(args):
 
 def import_result(args, vars, objs, actual_time_steps):
     write_progress(9, steps)
-    imp=PyomoImporter(vars, objs, actual_time_steps, args.server_url, args.session_id)
+    imp=Importer(vars, objs, actual_time_steps, args.server_url, args.session_id)
     write_progress(10, steps)
     imp.load_network(args.network, args.scenario)
     write_progress(11, steps)

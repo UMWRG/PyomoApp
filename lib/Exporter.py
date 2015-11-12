@@ -386,7 +386,6 @@ class Exporter (JSONPlugin):
                     if attr is None or attr.dataset_id is  None or attr.dataset_type != 'timeseries':
                         continue
                     try:
-                        print self.time_index.values()
                         all_data = self.get_time_value(attr.value, self.time_index.values())
                     except Exception, e:
                         log.exception(e)
@@ -722,7 +721,6 @@ class Exporter (JSONPlugin):
                                 self.output_file_contents.append(format('['+str(i)+','+str(i)+']'))
                                 i+=1
                                 for value in item:
-                                    print value,": ",count
                                     self.output_file_contents.append(' {0:20}'.format(value))
                             else:
                                 i+=1
