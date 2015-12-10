@@ -1,6 +1,6 @@
 <plugin_info>
     <plugin_name>Pyomo Automatic run</plugin_name>
-    <plugin_dir>PyomoAutoRun.exe</plugin_dir>
+    <plugin_dir>PyomoAutoRun.bat</plugin_dir>
     <plugin_description>Automatically export input data file, Rum Pyomo. then import  results file into Hydra.
 	</plugin_description>
 	<smallicon>pyomo_auto_16.png</smallicon>

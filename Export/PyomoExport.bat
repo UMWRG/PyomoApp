@@ -1,0 +1,2 @@
+cd..\PyomoFiles
+PyomoExport.exe %*

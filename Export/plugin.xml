@@ -1,6 +1,6 @@
 <plugin_info>
     <plugin_name>Export to Pyomo</plugin_name>
-    <plugin_dir>PyomoExport.exe</plugin_dir>
+    <plugin_dir>PyomoExport.bat</plugin_dir>
     <plugin_description>Export a network from Hydra to a pyomo input text file.
 	</plugin_description>
 	<smallicon>pyomo_export_16.png</smallicon>

@@ -1,6 +1,6 @@
 <plugin_info>
     <plugin_name>Pyomo Run and Import</plugin_name>
-    <plugin_dir>PyomoRunImport.exe</plugin_dir>
+    <plugin_dir>PyomoRunImport.bat</plugin_dir>
     <plugin_description>
         Run a pyomo model and automatically import the results to Hydra.
 	</plugin_description>
