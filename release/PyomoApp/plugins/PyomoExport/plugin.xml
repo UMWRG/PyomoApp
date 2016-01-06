@@ -1,0 +1,123 @@
+<plugin_info>
+    <plugin_name>Export to Pyomo</plugin_name>
+    <plugin_dir>PyomoExport.bat</plugin_dir>
+    <plugin_description>Export a network from Hydra to a pyomo input text file.
+	</plugin_description>
+	<smallicon>pyomo_export_16.png</smallicon>
+    <largeicon>pyomo_export_32.png</largeicon>
+    <plugin_epilog>For more information visit hydra platform website</plugin_epilog>
+	<mandatory_args>
+        <arg>
+            <name>network</name>
+            <switch>-t</switch>
+            <multiple>N</multiple>
+            <allownew>N</allownew>
+            <argtype>network</argtype>
+            <help>ID of the network where results will be imported to. This coincides with the network exported to Pyomo..</help>
+        </arg>
+        <arg>
+            <name>scenario</name>
+            <switch>-s</switch>
+            <multiple>N</multiple>
+            <allownew>N</allownew>
+            <argtype>scenario</argtype>
+            <help> ID of the underlying scenario used for the most recent simulation run.</help>
+        </arg>
+		<arg>
+            <name>output</name>
+            <switch>-o</switch>
+            <multiple>N</multiple>
+            <allownew>N</allownew>
+            <argtype>file</argtype>
+            <help>Filename of the output file.</help>
+        </arg>
+    </mandatory_args>
+    <non_mandatory_args>
+        <arg>
+           <name>time-axis</name>
+           <switch>-tx</switch>
+           <multiple>N</multiple>
+            <allownew>N</allownew>
+           <argtype>string</argtype>
+           <help>Time axis for the modelling period (a list of comma separated time stamps). Either the time axis or a start-time, end-time, time-step combination MUST be specified.</help>
+        </arg>
+        <arg>
+           <name>start-date</name>
+           <switch>-st</switch>
+           <multiple>N</multiple>
+            <allownew>N</allownew>
+           <argtype>starttime</argtype>
+           <help>Start date of the time period used for simulation. Must be after 1900-01-01.</help>
+        </arg>
+         <arg>
+           <name>end-date</name>
+           <switch>-en</switch>
+           <multiple>N</multiple>
+           <allownew>N</allownew>
+           <argtype>endtime</argtype>
+           <help>End date of the time period used for simulation. Must be after 1900-01-01.</help>
+        </arg>
+        <arg>
+           <name>time-step</name>
+           <switch>-dt</switch>
+           <multiple>N</multiple>
+           <allownew>N</allownew>
+           <argtype>timestep</argtype>
+           <help>Time step used for simulation. The time step needs to be specified as a valid time length as supported by Hydra's unit conversion function (e.g. 1 s, 3 min, 2 h, 4 day, 1 mon, 1 yr)</help>
+        </arg>
+   		<arg>
+            <name>template</name>
+            <switch>-tp</switch>
+            <multiple>N</multiple>
+            <allownew>N</allownew>
+            <argtype>string</argtype>
+            <help>ID of the template used for exporting resources. Attributes that don't belong to this template are ignored.</help>
+        </arg>
+		<arg>
+           <name>group-nodes-by</name>
+           <switch>-gn</switch>
+           <multiple>N</multiple>
+           <allownew>N</allownew>
+           <argtype>string</argtype>
+           <help>Group nodes by this attribute(s).</help>
+        </arg>
+       <arg>
+           <name>group-links-by</name>
+           <switch>-gl</switch>
+           <multiple>N</multiple>
+           <allownew>N</allownew>
+           <argtype>string</argtype>
+           <help>Group links by this attribute(s).</help>
+        </arg>
+        <arg>
+            <name>server_url</name>
+            <switch>-u</switch>
+            <multiple>N</multiple>
+            <argtype>string</argtype>
+            <help>Specify the URL of the server to which this
+                        plug-in connects.</help>
+        </arg>
+        <arg>
+            <name>session_id</name>
+            <switch>-c</switch>
+            <multiple>N</multiple>
+            <argtype>string</argtype>
+            <help>Specify the session ID for the connection. If not specified,
+            the plugin will try to connect based on the credentials it finds in config</help>
+        </arg>
+    </non_mandatory_args>
+    <switches>
+       <arg>
+           <switch>-et</switch>
+           <name>Export by Type</name>
+           <help>Check to export data by types rather than by attributes. </help>
+        </arg>
+        <arg>
+           <switch>-ln</switch>
+           <name>Export Links by Name</name>
+           <help>Export links by their name, rather than by their start, end node. If two nodes
+                        can be connected by more than one link, you should
+                        choose this option.</help>
+        </arg>
+    </switches>
+ </plugin_info>

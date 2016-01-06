@@ -1,0 +1,2 @@
+cd..\PyomoFiles
+PyomoRunImport.exe %*
