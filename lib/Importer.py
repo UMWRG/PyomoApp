@@ -89,7 +89,6 @@ class Importer (object):
         timeseries = {'0': {}}
         counter=0
         for time_s in self.actual_time_steps:
-
             timeseries['0'][time_s]=json.dumps(data[counter])
             counter+=1
         return json.dumps(timeseries)

@@ -340,6 +340,10 @@ class Exporter (JSONPlugin):
         for resource in resources:
             for attr in resource.attributes:
                 if attr.dataset_type == 'timeseries' and attr.is_var is False:
+                    if(self.time_index is None):
+                         raise HydraPluginError("Missing time axis or start date, end date and time step or bad format")
+
+
                     attr.name = translate_attr_name(attr.name)
                     if attr.name not in attr_names:
                         attrb_tables[attr.name]=attr
@@ -421,6 +425,8 @@ class Exporter (JSONPlugin):
         for resource in resources:
             for attr in resource.attributes:
                 if attr.dataset_type == 'timeseries' and attr.is_var is False:
+                    if(len(self.time_index) is 0):
+                         raise HydraPluginError("Missing time axis or start date, end date and time step or bad format")
                     attr.name = translate_attr_name(attr.name)
                     if attr.name not in attr_names:
                         attrb_tables[attr.name]=attr

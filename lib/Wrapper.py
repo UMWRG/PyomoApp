@@ -179,7 +179,10 @@ def get_obj_value(result, obj, list_, units):
     '''
     get objectives values from the result
     '''
-    value_= float(result.Solver[0]['Termination message'].split("=")[1])
+    #if 'Termination message' in result.Solver[0].keys():
+    #if result.Solver[0]['Termination message'] is not None:
+    value_=obj.expr()
+
      #value_=result.solution[0].objective[1].Value
     #zvalue_=result.objective[1].Value
     varmodel=None
@@ -195,5 +198,8 @@ def get_obj_value(result, obj, list_, units):
             unit=None
         varmodel=ModelVarable(str(obj), 'Network', desc, unit)
         list_.append(varmodel)
-    varmodel.add_data(value_)
+    if(value_ is None):
+        pass
+    else:
+        varmodel.add_data(value_)
     return list_
