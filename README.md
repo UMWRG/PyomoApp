@@ -1,12 +1,10 @@
-plugin_name: PyomoApp
+plugin name: PyomoExporter
 --------------------------
 The plug-in provides an easy to use tool for exporting data from
 HydraPlatform to custom Pyomo models. The basic idea is that this plug-in
 exports a network and associated data from HydraPlatform to a text file which
 can be imported into an existing Pyomo model.
 
-Mandatory Args
-~~~~~~~~~~~~~~
 
 
 **Mandatory Args:**
@@ -25,8 +23,7 @@ Option                 Short  Parameter  Description
 --output              -o    OUTPUT       Filename of the output file.
 ====================== ====== ========== ======================================
 
-Server-based arguments
-~~~~~~~~~~~~~~~~~~~~~~
+
 
 **Server-based arguments:**
 
@@ -40,6 +37,8 @@ Option                 Short  Parameter  Description
                                            If left empty, the plugin will attempt 
                                            to log in itself.
 ====================== ====== ========== =========================================
+
+
 
 **Switches:**
 
@@ -82,7 +81,7 @@ Option                 Short  Parameter  Description
 --time-axis             -tx    TIME_AXIS  Time axis for the modelling period (a
                                           list of comma separated time stamps).
 ====================== ======= ========== ======================================
-===============================================================================
+================================================================================
 
 plugin_name: PyomoAutoRun
 --------------------------
@@ -147,9 +146,9 @@ mandatory:
 
 **Option 1:**
 
-====================== ====== ========== ======================================
+====================== ====== ========== =======================================
 Option                 Short  Parameter  Description
-====================== ====== ========== ======================================
+====================== ======= ========== ======================================
 --start-date            -st   START_DATE  Start date of the time period used for
                                           simulation.
 --end-date              -en   END_DATE    End date of the time period used for
@@ -159,16 +158,16 @@ Option                 Short  Parameter  Description
                                           valid time length as supported by
                                           Hydra's unit conversion function (e.g.
                                           1 s, 3 min, 2 h, 4 day, 1 mon, 1 yr)
-====================== ====== ========== ======================================
+====================== ======= ========== ======================================
 
 **Option 2:**
 
 ====================== ====== ========== ======================================
 Option                 Short  Parameter  Description
-====================== ====== ========== ======================================
+====================== ======= ========== ======================================
 --time-axis             -tx    TIME_AXIS  Time axis for the modelling period (a
                                           list of comma separated time stamps).
-====================== ====== ========== ======================================
+====================== ======= ========== ======================================
 ===============================================================================
 
 plugin_name: PyomoRunImport
