@@ -1,16 +1,15 @@
-# PyomoApp
-
-# GAMSApp
-
-plugin_name: PyomoExporter
+plugin_name: PyomoApp
 --------------------------
 The plug-in provides an easy to use tool for exporting data from
 HydraPlatform to custom Pyomo models. The basic idea is that this plug-in
 exports a network and associated data from HydraPlatform to a text file which
 can be imported into an existing Pyomo model.
 
-**Mandatory Args:**
+Mandatory Args
+~~~~~~~~~~~~~~
 
+
+**Mandatory Args:**
 
 ====================== ====== ========== ======================================
 Option                 Short  Parameter  Description
@@ -25,6 +24,9 @@ Option                 Short  Parameter  Description
                                          belong to this template are ignored.
 --output              -o    OUTPUT       Filename of the output file.
 ====================== ====== ========== ======================================
+
+Server-based arguments
+~~~~~~~~~~~~~~~~~~~~~~
 
 **Server-based arguments:**
 
@@ -58,7 +60,7 @@ mandatory:
 
 **Option 1:**
 
-====================== ====== ========== ======================================
+====================== ====== ========== =======================================
 Option                 Short  Parameter  Description
 ====================== ======= ========== ======================================
 --start-date            -st   START_DATE  Start date of the time period used for
