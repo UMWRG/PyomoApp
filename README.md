@@ -5,7 +5,8 @@ HydraPlatform to custom Pyomo models. The basic idea is that this plug-in
 exports a network and associated data from HydraPlatform to a text file which
 can be imported into an existing Pyomo model.
 
-
+Arguments
+~~~~~~~~~
 
 **Mandatory Args:**
 
@@ -15,15 +16,13 @@ Option                 Short  Parameter  Description
 --network              -t     NETWORK    ID of the network where results will
                                          be imported to. Ideally this coincides
                                          with the network exported to Pyomo.
---scenario            -s     SCENARIO    ID of the underlying scenario used for
-                                          simulation
---template-id         -tp    TEMPLATE    ID of the template used for exporting
+--scenario             -s     SCENARIO   ID of the underlying scenario used for
+                                         simulation
+--template-id          -tp    TEMPLATE   ID of the template used for exporting
                                          resources. Attributes that don't
                                          belong to this template are ignored.
---output              -o    OUTPUT       Filename of the output file.
+--output               -o     OUTPUT     Filename of the output file.
 ====================== ====== ========== ======================================
-
-
 
 **Server-based arguments:**
 
@@ -37,8 +36,6 @@ Option                 Short  Parameter  Description
                                            If left empty, the plugin will attempt 
                                            to log in itself.
 ====================== ====== ========== =========================================
-
-
 
 **Switches:**
 
@@ -59,14 +56,14 @@ mandatory:
 
 **Option 1:**
 
-====================== ====== ========== =======================================
-Option                 Short  Parameter  Description
 ====================== ======= ========== ======================================
---start-date            -st   START_DATE  Start date of the time period used for
+Option                 Short   Parameter  Description
+====================== ======= ========== ======================================
+--start-date           -st    START_DATE  Start date of the time period used for
                                           simulation.
---end-date              -en   END_DATE    End date of the time period used for
+--end-date             -en    END_DATE    End date of the time period used for
                                           simulation.
---time-step             -dt   TIME_STEP   Time step used for simulation. The
+--time-step            -dt    TIME_STEP   Time step used for simulation. The
                                           time step needs to be specified as a
                                           valid time length as supported by
                                           Hydra's unit conversion function (e.g.
@@ -75,15 +72,15 @@ Option                 Short  Parameter  Description
 
 **Option 2:**
 
-====================== ====== ========== ======================================
-Option                 Short  Parameter  Description
-====================== ======= ========== ======================================
---time-axis             -tx    TIME_AXIS  Time axis for the modelling period (a
-                                          list of comma separated time stamps).
-====================== ======= ========== ======================================
+====================== ======  ==========  ======================================
+Option                 Short   Parameter   Description
+====================== ======= ==========  ======================================
+--time-axis             -tx    TIME_AXIS   Time axis for the modelling period (a
+                                           list of comma separated time stamps).
+====================== ======= ==========  ======================================
 ================================================================================
 
-plugin_name: PyomoAutoRun
+plugin name: PyomoAutoRun
 --------------------------
 
 The plug-in provides an easy way to:
@@ -106,7 +103,7 @@ Option                 Short  Parameter  Description
                                          resources. Attributes that don't
                                          belong to this template are ignored.
 --output               -o     OUTPUT     Filename of the output file.
---model               -m      MODEL      Pyomo model file (*.py), needs to have
+--model                -m     MODEL      Pyomo model file (*.py), needs to have
                                          a method called run_model which 
                                          takes the datafile as an argument and 
                                          return 2 lists containing results and 
@@ -146,27 +143,27 @@ mandatory:
 
 **Option 1:**
 
-====================== ====== ========== =======================================
-Option                 Short  Parameter  Description
-====================== ======= ========== ======================================
---start-date            -st   START_DATE  Start date of the time period used for
+====================== ====== ==========  =======================================
+Option                 Short  Parameter   Description
+====================== ====== ========== ======================================
+--start-date           -st    START_DATE  Start date of the time period used for
                                           simulation.
---end-date              -en   END_DATE    End date of the time period used for
+--end-date             -en    END_DATE    End date of the time period used for
                                           simulation.
---time-step             -dt   TIME_STEP   Time step used for simulation. The
+--time-step            -dt    TIME_STEP   Time step used for simulation. The
                                           time step needs to be specified as a
                                           valid time length as supported by
                                           Hydra's unit conversion function (e.g.
                                           1 s, 3 min, 2 h, 4 day, 1 mon, 1 yr)
-====================== ======= ========== ======================================
+====================== ====== ==========  =======================================
 
 **Option 2:**
 
 ====================== ====== ========== ======================================
 Option                 Short  Parameter  Description
-====================== ======= ========== ======================================
---time-axis             -tx    TIME_AXIS  Time axis for the modelling period (a
-                                          list of comma separated time stamps).
+====================== ====== ========== ======================================
+--time-axis            -tx    TIME_AXIS  Time axis for the modelling period (a
+                                         list of comma separated time stamps).
 ====================== ======= ========== ======================================
 ===============================================================================
 
@@ -178,8 +175,7 @@ The plug-in provides an easy way to:
             - Rum pyomo model.
             - Import a results into Hydra.
 			
-mandatory_args
-==============
+**Mandatory Args:**
 
 ====================== ====== ========== ======================================
 Option                 Short  Parameter  Description
@@ -192,23 +188,25 @@ Option                 Short  Parameter  Description
 --template-id         -tp    TEMPLATE    ID of the template used for exporting
                                          resources. Attributes that don't
                                          belong to this template are ignored.
---output              -o    OUTPUT       Filename of the output file.
+--output              -o     OUTPUT      Filename of the output file.
 
--- model              -m    Pyomo model  Pyomo model file (*.py), needs to implement a method called
-                            file         run_model which takes the datafile as an argument and returns
-                                         2 lists containing results and model instances. Example is
-                                         distributed with the plugin
+-- model              -m     Pyomo model Pyomo model file (*.py), needs to 
+                             file        implement a method called run_model 
+                                         which takes the datafile as an 
+                                         argument and returns 2 lists containing 
+										 results and model instances. Example 
+										 isdistributed with the plugin
+====================== ====== ========== ======================================
 
+**Server-based arguments** 
 
-Server-based arguments
-======================
-
+====================== ====== =========== =========================================
+Option                 Short  Parameter   Description
+====================== ====== =========== =========================================
+--server_url           -u     SERVER_URL  Url of the server the plugin will 
+                                          connect to.
+                                          Defaults to localhost.
+--session_id`          -c     SESSION_ID  Session ID used by the calling software
+                                          If left empty, the plugin will attempt 
+                                          to log in itself.
 ====================== ====== ========== =========================================
-Option                 Short  Parameter  Description
-====================== ====== ========== =========================================
-``--server_url``       ``-u`` SERVER_URL   Url of the server the plugin will 
-                                           connect to.
-                                           Defaults to localhost.
-``--session_id``       ``-c`` SESSION_ID   Session ID used by the calling software
-                                           If left empty, the plugin will attempt 
-                                           to log in itself.
